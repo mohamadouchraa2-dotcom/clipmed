@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0b0d1e">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FDE047'/><stop offset='1' stop-color='%23F59E0B'/></linearGradient></defs><rect width='48' height='48' rx='13' fill='url(%23g)'/><polygon points='19,13 19,33 35,23' fill='%2312142F' stroke='%2312142F' stroke-width='3' stroke-linejoin='round'/><rect x='10' y='39' width='28' height='3' rx='1.5' fill='%2312142F'/></svg>">
 <title>ClipMed — Tools for video editors</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <script>
@@ -65,6 +66,10 @@ const P = {
   camera: <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></>,
   copy: <><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>,
   check: <polyline points="20 6 9 17 4 12"/>,
+  fileText: <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></>,
+  msg: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>,
+  bulb: <><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></>,
+  image: <><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></>,
 };
 const Icon = ({ n, s = 18, c = '' }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c} aria-hidden="true">{P[n]}</svg>
@@ -102,9 +107,15 @@ const I18N = {
     'A ready set of hashtags for Shorts, Reels and TikTok.': `Un jeu de hashtags prêt pour Shorts, Reels et TikTok.`,
     'Turn an idea into a shot-by-shot plan before you film.': `Transformez une idée en plan plan par plan avant de tourner.`,
     'Edit faster with tools that work right here.': `Montez plus vite avec des outils qui fonctionnent ici même.`,
-    'Grade footage, size your export, cut to the beat, and plan your next video with AI. No downloads, no sign-up.': `Étalonnez vos images, choisissez le bon format d'export, coupez en rythme et planifiez votre prochaine vidéo avec l'IA. Aucun téléchargement, aucune inscription.`,
+    'Grade footage, size your export, design thumbnails, and write scripts, hooks and captions with AI. No downloads, no sign-up.': `Étalonnez vos images, choisissez le bon format d'export, créez vos miniatures et écrivez scripts, accroches et légendes avec l'IA. Aucun téléchargement, aucune inscription.`,
     'Search tools...': `Rechercher un outil...`, 'Search tools': `Rechercher un outil`, 'Editing tools': `Outils de montage`, 'AI tools': `Outils IA`,
-    'AI tool': `Outil IA`, 'Editing tool': `Outil de montage`, 'Open tool': `Ouvrir l'outil`, 'Powered by Gemini AI': `Propulsé par Gemini AI`, '100% Free': `100 % gratuit`, 'AI is thinking': `L'IA réfléchit`, 'No tool matches that search. Try another word.': `Aucun outil ne correspond. Essayez un autre mot.`,
+    'AI tool': `Outil IA`, 'Editing tool': `Outil de montage`, 'Open tool': `Ouvrir l'outil`, 'Powered by Gemini AI': `Propulsé par Gemini AI`, '100% Free': `100 % gratuit`, 'AI is thinking': `L'IA réfléchit`,
+    'Thumbnail Maker': `Créateur de miniatures`, 'Make a 1280×720 thumbnail with big text over any image.': `Créez une miniature 1280×720 avec un grand texte sur n'importe quelle image.`,
+    'Script Writer': `Rédacteur de scripts`, 'A full short-video script with hook, key points and call to action.': `Un script complet pour vidéo courte : accroche, points clés et appel à l'action.`,
+    'Caption & Hashtags': `Légendes et hashtags`, 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.': `Des légendes prêtes à publier avec hashtags pour TikTok, Reels et Shorts.`,
+    'Video Idea Generator': `Générateur d'idées de vidéos`, 'Fresh video ideas for your niche, each with an angle.': `Des idées de vidéos pour votre niche, chacune avec un angle.`,
+    'Your niche or channel type': `Votre niche ou type de chaîne`, 'Choose an image': `Choisir une image`, 'Thumbnail text': `Texte de la miniature`, 'Text size': `Taille du texte`,
+    'Top': `Haut`, 'Center': `Centre`, 'Bottom': `Bas`, 'Darken background': `Assombrir l'arrière-plan`, 'Download thumbnail (PNG)': `Télécharger la miniature (PNG)`, 'No tool matches that search. Try another word.': `Aucun outil ne correspond. Essayez un autre mot.`,
   },
   ar: {
     'All tools': `كل الأدوات`, 'Choose a video or image': `اختر فيديو أو صورة`,
@@ -133,9 +144,15 @@ const I18N = {
     'A ready set of hashtags for Shorts, Reels and TikTok.': `مجموعة هاشتاغات جاهزة لشورتس وريلز وتيك توك.`,
     'Turn an idea into a shot-by-shot plan before you film.': `حوّل الفكرة إلى خطة لقطة بلقطة قبل التصوير.`,
     'Edit faster with tools that work right here.': `قم بالمونتاج أسرع بأدوات تعمل هنا مباشرة.`,
-    'Grade footage, size your export, cut to the beat, and plan your next video with AI. No downloads, no sign-up.': `لوّن لقطاتك، واختر مقاس التصدير، واقطع على الإيقاع، وخطّط لفيديوك القادم بالذكاء الاصطناعي. بدون تحميل وبدون تسجيل.`,
+    'Grade footage, size your export, design thumbnails, and write scripts, hooks and captions with AI. No downloads, no sign-up.': `لوّن لقطاتك، واختر مقاس التصدير، وصمّم صورك المصغّرة، واكتب السكريبتات والافتتاحيات والأوصاف بالذكاء الاصطناعي. بدون تحميل وبدون تسجيل.`,
     'Search tools...': `ابحث عن أداة...`, 'Search tools': `ابحث عن أداة`, 'Editing tools': `أدوات المونتاج`, 'AI tools': `أدوات الذكاء الاصطناعي`,
-    'AI tool': `أداة ذكاء اصطناعي`, 'Editing tool': `أداة مونتاج`, 'Open tool': `افتح الأداة`, 'Powered by Gemini AI': `مدعوم بـ Gemini AI`, '100% Free': `مجاني 100%`, 'AI is thinking': `الذكاء الاصطناعي يفكر`, 'No tool matches that search. Try another word.': `لا توجد أداة مطابقة. جرّب كلمة أخرى.`,
+    'AI tool': `أداة ذكاء اصطناعي`, 'Editing tool': `أداة مونتاج`, 'Open tool': `افتح الأداة`, 'Powered by Gemini AI': `مدعوم بـ Gemini AI`, '100% Free': `مجاني 100%`, 'AI is thinking': `الذكاء الاصطناعي يفكر`,
+    'Thumbnail Maker': `صانع الصور المصغّرة`, 'Make a 1280×720 thumbnail with big text over any image.': `اصنع صورة مصغّرة 1280×720 بنص كبير فوق أي صورة.`,
+    'Script Writer': `كاتب السكريبت`, 'A full short-video script with hook, key points and call to action.': `سكريبت كامل لفيديو قصير: افتتاحية ونقاط رئيسية ودعوة لاتخاذ إجراء.`,
+    'Caption & Hashtags': `الوصف والهاشتاغات`, 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.': `أوصاف جاهزة للنشر مع هاشتاغات لتيك توك وريلز وشورتس.`,
+    'Video Idea Generator': `مولّد أفكار الفيديو`, 'Fresh video ideas for your niche, each with an angle.': `أفكار فيديوهات جديدة لمجالك، كل فكرة بزاوية مختلفة.`,
+    'Your niche or channel type': `مجالك أو نوع قناتك`, 'Choose an image': `اختر صورة`, 'Thumbnail text': `نص الصورة المصغّرة`, 'Text size': `حجم النص`,
+    'Top': `أعلى`, 'Center': `الوسط`, 'Bottom': `أسفل`, 'Darken background': `تعتيم الخلفية`, 'Download thumbnail (PNG)': `تحميل الصورة المصغّرة (PNG)`, 'No tool matches that search. Try another word.': `لا توجد أداة مطابقة. جرّب كلمة أخرى.`,
   },
 };
 
@@ -143,7 +160,7 @@ function LangPicker({ onPick }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-[#0b0d1e] px-5" role="dialog" aria-modal="true" aria-label="Language">
       <div className="w-full max-w-sm py-10 text-center">
-        <span className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-accent text-ink shadow-lg shadow-accent/20"><Icon n="video" s={28} /></span>
+        <span className="mx-auto mb-5 block w-fit"><Logo s={64} /></span>
         <h1 className="text-3xl font-extrabold tracking-tight">ClipMed</h1>
         <p className="mt-3 leading-7 text-gray-400">Choose your language<br />Choisissez votre langue<br /><span dir="rtl">اختر لغتك</span></p>
         <div className="mt-8 space-y-3">
@@ -157,21 +174,45 @@ function LangPicker({ onPick }) {
 }
 
 /* ---------- GENERATED ARTWORK (no external images) ---------- */
-const Cover = ({ hue, kind, seed }) => {
-  const id = 'g' + seed;
-  return (
-    <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
-      <defs><linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor={`hsl(${hue} 65% 24%)`} /><stop offset="1" stopColor={`hsl(${hue + 55} 70% 11%)`} />
-      </linearGradient></defs>
-      <rect width="200" height="100" fill={`url(#${id})`} />
-      {kind === 'edit'
-        ? [0, 1, 2, 3].map((i) => <rect key={i} x={8 + ((seed * 37 + i * 53) % 70)} y={14 + i * 20} width={40 + ((seed * 17 + i * 31) % 70)} height="12" rx="4" fill={`hsl(${hue + i * 22} 90% 62%)`} opacity=".85" />)
-        : Array.from({ length: 34 }, (_, i) => { const h = 8 + Math.abs(Math.sin(i * 0.55 + seed)) * 46; return <rect key={i} x={10 + i * 5.5} y={50 - h / 2} width="3" height={h} rx="1.5" fill={`hsl(${hue + i * 3} 90% 65%)`} opacity=".85" />; })}
-      {kind === 'edit' && <line x1={110 + seed * 6} y1="4" x2={110 + seed * 6} y2="96" stroke="#FACC15" strokeWidth="1.5" />}
-    </svg>
-  );
+const Logo = ({ s = 40 }) => (
+  <svg width={s} height={s} viewBox="0 0 48 48" aria-hidden="true" style={{ filter: 'drop-shadow(0 0 10px rgba(250,204,21,.45))' }}>
+    <defs><linearGradient id={`lg${s}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FDE047" /><stop offset="1" stopColor="#F59E0B" /></linearGradient></defs>
+    <rect width="48" height="48" rx="13" fill={`url(#lg${s})`} />
+    <polygon points="19,13 19,33 35,23" fill="#12142F" stroke="#12142F" strokeWidth="3" strokeLinejoin="round" />
+    <rect x="10" y="39" width="28" height="3" rx="1.5" fill="#12142F" />
+    <rect x="30" y="36" width="3" height="9" rx="1.5" fill="#12142F" />
+    <path d="M38 8l1.4 3.6L43 13l-3.6 1.4L38 18l-1.4-3.6L33 13l3.6-1.4z" fill="#fff" opacity=".9" />
+  </svg>
+);
+
+const ART = {
+  grade: (h) => <><circle cx="84" cy="46" r="24" fill={`hsl(${h} 90% 60%)`} opacity=".85" /><circle cx="108" cy="46" r="24" fill="#FACC15" opacity=".8" /><circle cx="96" cy="66" r="24" fill="#3DDBD9" opacity=".8" />
+    {[22, 46, 70].map((y, i) => <g key={y}><rect x="150" y={y} width="30" height="5" rx="2.5" fill="#fff" opacity=".6" /><circle cx={158 + i * 6} cy={y + 2.5} r="5" fill="#FACC15" /></g>)}</>,
+  aspect: () => <><rect x="30" y="14" width="34" height="72" rx="5" fill="none" stroke="#FACC15" strokeWidth="2.5" /><rect x="36" y="20" width="22" height="60" rx="3" fill="none" stroke="#FACC15" strokeDasharray="3 3" opacity=".6" />
+    <rect x="76" y="28" width="64" height="36" rx="5" fill="none" stroke="#fff" strokeWidth="2.5" opacity=".85" /><rect x="152" y="32" width="28" height="28" rx="5" fill="none" stroke="#3DDBD9" strokeWidth="2.5" /></>,
+  thumb: (h) => <><rect x="34" y="16" width="132" height="68" rx="8" fill="#0b0d1e" opacity=".55" stroke="#fff" strokeOpacity=".5" strokeWidth="2" /><polygon points="34,84 70,46 94,70 116,54 166,84" fill={`hsl(${h} 70% 45%)`} opacity=".9" />
+    <circle cx="142" cy="34" r="8" fill="#FACC15" /><rect x="46" y="22" width="60" height="9" rx="3" fill="#FACC15" /><rect x="46" y="35" width="40" height="9" rx="3" fill="#fff" /></>,
+  script: () => <><rect x="62" y="12" width="76" height="78" rx="7" fill="#fff" opacity=".93" /><rect x="72" y="24" width="40" height="6" rx="3" fill="#12142F" />
+    {[38, 48, 58].map((y) => <rect key={y} x="72" y={y} width="54" height="4" rx="2" fill="#12142F" opacity=".35" />)}<rect x="72" y="68" width="30" height="4" rx="2" fill="#FACC15" /><rect x="106" y="65" width="2.5" height="10" fill="#12142F" /></>,
+  hooks: () => <><polygon points="100,8 70,54 94,54 86,92 128,40 102,40" fill="#FACC15" /><path d="M150 24v34a14 14 0 0 1-28 0" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" opacity=".85" /><circle cx="150" cy="22" r="4" fill="#fff" opacity=".85" /></>,
+  titles: () => <><rect x="30" y="22" width="140" height="24" rx="6" fill="#fff" opacity=".92" /><text x="40" y="40" fontSize="15" fontWeight="800" fill="#12142F" fontFamily="sans-serif">How I Edit Like a Pro</text>
+    <rect x="30" y="54" width="100" height="14" rx="5" fill="#FACC15" /><rect x="30" y="74" width="70" height="8" rx="4" fill="#fff" opacity=".4" /></>,
+  captions: () => <><rect x="34" y="14" width="110" height="56" rx="14" fill="#fff" opacity=".93" /><polygon points="58,70 58,86 76,70" fill="#fff" opacity=".93" /><rect x="46" y="28" width="70" height="6" rx="3" fill="#12142F" />
+    <rect x="46" y="40" width="86" height="5" rx="2.5" fill="#12142F" opacity=".35" /><rect x="46" y="51" width="50" height="5" rx="2.5" fill="#12142F" opacity=".35" /><text x="152" y="64" fontSize="42" fontWeight="800" fill="#FACC15" fontFamily="sans-serif">#</text></>,
+  ideas: () => <><circle cx="100" cy="42" r="24" fill="#FACC15" /><rect x="90" y="64" width="20" height="8" rx="3" fill="#fff" opacity=".85" /><rect x="93" y="74" width="14" height="6" rx="3" fill="#fff" opacity=".6" />
+    <g stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity=".7"><line x1="100" y1="6" x2="100" y2="12" /><line x1="64" y1="42" x2="58" y2="42" /><line x1="136" y1="42" x2="142" y2="42" /><line x1="74" y1="16" x2="70" y2="12" /><line x1="126" y1="16" x2="130" y2="12" /></g></>,
+  shots: (h) => <>{[0, 1, 2].flatMap((c) => [0, 1].map((r) => <rect key={`${c}${r}`} x={34 + c * 46} y={16 + r * 38} width="40" height="32" rx="5" fill={`hsl(${h + (c + r * 3) * 28} 75% 55%)`} opacity=".88" />))}<polygon points="48,28 48,42 60,35" fill="#fff" opacity=".85" /></>,
 };
+const Cover = ({ id, hue }) => (
+  <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
+    <defs>
+      <linearGradient id={`cg-${id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={`hsl(${hue} 65% 26%)`} /><stop offset="1" stopColor={`hsl(${hue + 55} 70% 10%)`} /></linearGradient>
+      <radialGradient id={`cr-${id}`} cx=".5" cy=".45" r=".6"><stop offset="0" stopColor={`hsl(${hue} 90% 60%)`} stopOpacity=".35" /><stop offset="1" stopOpacity="0" /></radialGradient>
+    </defs>
+    <rect width="200" height="100" fill={`url(#cg-${id})`} /><rect width="200" height="100" fill={`url(#cr-${id})`} />
+    {ART[id](hue)}
+  </svg>
+);
 
 const HeroArt = () => (
   <svg viewBox="0 0 400 220" className="w-full rounded-3xl border border-white/10 bg-panel shadow-[0_0_60px_-12px_rgba(250,204,21,.28)]" aria-hidden="true">
@@ -285,87 +326,72 @@ function AspectTool() {
   );
 }
 
-const toTC = (f, fps) => { const s = Math.floor(f / fps); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f % fps].map((n) => String(n).padStart(2, '0')).join(':'); };
-const fromTC = (t, fps) => { const p = t.split(':').map(Number); return p.length === 4 && !p.some(isNaN) ? ((p[0] * 60 + p[1]) * 60 + p[2]) * fps + p[3] : null; };
-function TimecodeTool() {
-  const [fps, setFps] = useState(30);
-  const [frames, setFrames] = useState(450);
-  const [tc, setTc] = useState('00:00:15:00');
-  const [dur, setDur] = useState(10);
-  const [speed, setSpeed] = useState(200);
-  const back = fromTC(tc, fps);
+function ThumbnailMaker() {
+  const [img, setImg] = useState(null);
+  const [text, setText] = useState('MY NEW VIDEO');
+  const [size, setSize] = useState(110);
+  const [color, setColor] = useState('#FACC15');
+  const [pos, setPos] = useState('bottom');
+  const [dark, setDark] = useState(35);
+  const cv = useRef(null);
+  useEffect(() => {
+    const c = cv.current, x = c.getContext('2d'); c.width = 1280; c.height = 720;
+    const g = x.createLinearGradient(0, 0, 1280, 720); g.addColorStop(0, '#2a2370'); g.addColorStop(1, '#0f1233');
+    x.fillStyle = g; x.fillRect(0, 0, 1280, 720);
+    if (img) { const k = Math.max(1280 / img.width, 720 / img.height), w = img.width * k, h = img.height * k; x.drawImage(img, (1280 - w) / 2, (720 - h) / 2, w, h); }
+    x.fillStyle = `rgba(0,0,0,${dark / 100})`; x.fillRect(0, 0, 1280, 720);
+    x.font = `800 ${size}px "Bricolage Grotesque", Cairo, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const lines = []; let cur = '';
+    text.split(/\s+/).filter(Boolean).forEach((w) => { const t = cur ? cur + ' ' + w : w; if (x.measureText(t).width > 1160 && cur) { lines.push(cur); cur = w; } else cur = t; });
+    if (cur) lines.push(cur);
+    const lh = size * 1.12, bh = lines.length * lh;
+    const cy = pos === 'top' ? 56 + bh / 2 : pos === 'center' ? 360 : 664 - bh / 2;
+    x.lineJoin = 'round'; x.lineWidth = size / 7; x.strokeStyle = '#000'; x.fillStyle = color;
+    lines.forEach((l, i) => { const y = cy - bh / 2 + lh * i + lh / 2; x.strokeText(l, 640, y); x.fillText(l, 640, y); });
+  }, [img, text, size, color, pos, dark]);
+  const onFile = (e) => { const f = e.target.files[0]; if (!f) return; const i = new Image(); i.onload = () => setImg(i); i.src = URL.createObjectURL(f); };
+  const save = () => { const a = document.createElement('a'); a.href = cv.current.toDataURL('image/png'); a.download = 'clipmed-thumbnail.png'; a.click(); };
   return (
-    <div className="grid gap-5 md:grid-cols-2">
+    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <Card><canvas ref={cv} className="w-full rounded-xl" /></Card>
       <Card className="space-y-4">
-        <label className="block text-sm text-gray-300">{tr('Frame rate')}
-          <select value={fps} onChange={(e) => setFps(+e.target.value)} className={`${inp} mt-1`}>{[24, 25, 30, 50, 60].map((f) => <option key={f} value={f}>{f} fps</option>)}</select></label>
-        <label className="block text-sm text-gray-300">{tr('Frames to timecode')}
-          <input type="number" min="0" value={frames} onChange={(e) => setFrames(Math.max(0, +e.target.value))} className={`${inp} mt-1`} /></label>
-        <p className="text-2xl font-extrabold text-accent">{toTC(frames, fps)}</p>
-        <label className="block text-sm text-gray-300">{tr('Timecode to frames (HH:MM:SS:FF)')}
-          <input value={tc} onChange={(e) => setTc(e.target.value)} className={`${inp} mt-1`} /></label>
-        <p className="text-2xl font-extrabold text-accent">{back === null ? tr('Use HH:MM:SS:FF') : `${back} ${tr('frames')}`}</p>
-      </Card>
-      <Card className="space-y-4">
-        <h3 className="font-bold">{tr('Speed change')}</h3>
-        <label className="block text-sm text-gray-300">{tr('Clip length (seconds)')}
-          <input type="number" min="0" value={dur} onChange={(e) => setDur(+e.target.value)} className={`${inp} mt-1`} /></label>
-        <label className="block text-sm text-gray-300">{tr('Speed')}: {speed}%
-          <input type="range" min="10" max="800" value={speed} onChange={(e) => setSpeed(+e.target.value)} /></label>
-        <p className="text-sm text-gray-300">{tr('New length')}</p>
-        <p className="text-2xl font-extrabold text-accent">{(dur / (speed / 100)).toFixed(2)}s</p>
+        <label className={`${ghost} w-full cursor-pointer`}><Icon n="upload" s={16} /> {tr('Choose an image')}<input type="file" accept="image/*" onChange={onFile} className="sr-only" /></label>
+        <label className="block text-sm text-gray-300">{tr('Thumbnail text')}<input value={text} onChange={(e) => setText(e.target.value)} className={`${inp} mt-1`} /></label>
+        <label className="block text-sm text-gray-300">{tr('Text size')}<input type="range" min="50" max="180" value={size} onChange={(e) => setSize(+e.target.value)} /></label>
+        <label className="block text-sm text-gray-300">{tr('Darken background')}<input type="range" min="0" max="80" value={dark} onChange={(e) => setDark(+e.target.value)} /></label>
+        <div className="flex gap-2">{['#FACC15', '#FFFFFF', '#3DDBD9', '#FF5C8A'].map((c) => <button key={c} onClick={() => setColor(c)} aria-label={c} style={{ background: c }} className={`h-8 w-8 rounded-full ${color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-ink' : ''}`} />)}</div>
+        <div className="flex gap-2">{[['top', 'Top'], ['center', 'Center'], ['bottom', 'Bottom']].map(([k, l]) => <button key={k} onClick={() => setPos(k)} aria-pressed={pos === k} className={`${ghost} flex-1 ${pos === k ? '!border-accent !text-accent' : ''}`}>{tr(l)}</button>)}</div>
+        <button onClick={save} className={`${btn} w-full`}><Icon n="camera" /> {tr('Download thumbnail (PNG)')}</button>
       </Card>
     </div>
   );
 }
 
-function TapBpm() {
-  const [taps, setTaps] = useState([]);
-  const tap = () => { const now = performance.now(); setTaps((t) => (t.length && now - t[t.length - 1] > 2500 ? [now] : [...t, now]).slice(-9)); };
-  const iv = taps.slice(1).map((t, i) => t - taps[i]);
-  const bpm = iv.length ? Math.round(60000 / (iv.reduce((a, b) => a + b) / iv.length)) : 0;
-  return (
-    <div className="grid gap-5 md:grid-cols-2">
-      <Card className="grid place-items-center gap-4 py-10">
-        <p className="text-6xl font-extrabold text-accent">{bpm || '--'}<span className="ms-2 text-base text-gray-400">BPM</span></p>
-        <button onClick={tap} className="grid h-36 w-36 place-items-center rounded-full bg-accent text-lg font-extrabold text-ink neon active:scale-95">{tr('TAP')}</button>
-        <button onClick={() => setTaps([])} className={ghost}>{tr('Reset')}</button>
-      </Card>
-      <Card className="space-y-3">
-        <h3 className="font-bold">{tr('Where to cut')}</h3>
-        {bpm ? [['Every beat', 1], ['Every 2 beats', 2], ['Every bar (4 beats)', 4]].map(([l, m]) => (
-          <div key={l} className="flex justify-between rounded-xl bg-ink/60 px-4 py-3"><span className="text-gray-300">{tr(l)}</span><b>{((60 / bpm) * m).toFixed(2)}s</b></div>
-        )) : <p className="text-sm text-gray-400">{tr('Tap along to the song at least twice. Then cut your clips on these intervals so edits land on the beat.')}</p>}
-      </Card>
-    </div>
-  );
-}
-
-/* ---------- AI TOOLS ---------- */
 const LANG_NAME = { en: 'English', fr: 'French', ar: 'Arabic' };
-async function runAI(tool, input) {
+const AI_TOOLS = {
+  hooks: { mode: 'list', p: (i) => `Write 6 scroll-stopping opening hooks (for the first 3 seconds) for a short video about: ${i}.` },
+  titles: { mode: 'list', p: (i) => `Write 6 clear, clickable video titles for: ${i}.` },
+  script: { mode: 'text', p: (i) => `Write a short-form video script (about 45 seconds) about: ${i}. Structure: Hook, 3 key points, Call to action. Add a rough timing for each part.` },
+  captions: { mode: 'text', p: (i) => `Write ready-to-post captions for a video about: ${i}. Give 3 versions: TikTok (short), Instagram Reels, YouTube Shorts. End each with 5 relevant hashtags.` },
+  ideas: { mode: 'list', p: (i) => `Give 8 original video ideas for a creator in this niche: ${i}. One line each, with a short angle.` },
+  shots: { mode: 'list', p: (i) => `Plan a shot list for a video about: ${i}. Give 6 shots, one per line, each with shot type and duration.` },
+};
+async function runAI(id, input) {
+  const t = AI_TOOLS[id];
+  const prompt = `${t.p(input)} Reply in ${LANG_NAME[LANG]}. ` + (t.mode === 'list' ? 'Output only the list, one item per line, no intro.' : 'Use plain text with no markdown symbols (no ** or #), except for hashtags.');
   try {
-    const r = await fetch(AI_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: `Generate ${tool} for this topic/idea: ${input}. Reply in ${LANG_NAME[LANG]}. Provide a clean list of 5 or 6 items, one per line, without extra numbering or intro.` })
-    });
+    const r = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
     if (r.ok) {
       const data = await r.json();
       if (data.reply) {
-        return data.reply.split('\n').map((item) => item.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').trim()).filter(Boolean);
+        const clean = data.reply.replace(/\*\*/g, '');
+        return t.mode === 'text' ? [clean.trim()] : clean.split('\n').map((x) => x.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').trim()).filter(Boolean);
       }
     }
-  } catch (e) {
-    console.error(e);
-  }
-  return [
-    `Guide & Ideas for ${input}`,
-    `Top tips on ${input}`,
-    `How to master ${input} fast`,
-    `The ultimate breakdown of ${input}`,
-    `Everything you need to know about ${input}`
-  ];
+  } catch (e) { console.error(e); }
+  return t.mode === 'text'
+    ? [`${input}\n\nThe AI is not available right now. Please try again in a moment.`]
+    : [`Guide & Ideas for ${input}`, `Top tips on ${input}`, `How to master ${input} fast`, `The ultimate breakdown of ${input}`, `Everything you need to know about ${input}`];
 }
 
 function AiTool({ id, ph }) {
@@ -382,7 +408,7 @@ function AiTool({ id, ph }) {
   };
   const copy = (t, i) => { try { navigator.clipboard.writeText(t); setDone(i); setTimeout(() => setDone(-1), 1200); } catch (e) {} };
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       <div className="flex flex-col gap-3 sm:flex-row">
         <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && run()} placeholder={tr(ph)} className={inp} />
         <button onClick={run} disabled={busy} className={`${btn} ${busy ? 'animate-pulse' : ''}`}>{busy ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/25 border-t-ink" /> : <Icon n="zap" />}{busy ? tr('Working...') : tr('Generate')}</button>
@@ -398,8 +424,8 @@ function AiTool({ id, ph }) {
       )}
       <ul className={`mt-5 space-y-2 ${busy ? 'hidden' : ''}`}>
         {out.map((l, i) => (
-          <li key={i} className="flex items-center justify-between gap-3 rounded-xl glass px-4 py-3">
-            <span>{l}</span>
+          <li key={i} className="flex items-start justify-between gap-3 rounded-xl glass px-4 py-3">
+            <span className={AI_TOOLS[id].mode === 'text' ? 'whitespace-pre-wrap leading-7' : ''}>{l}</span>
             <button onClick={() => copy(l, i)} title="Copy" className="text-gray-400 hover:text-white"><Icon n={done === i ? 'check' : 'copy'} /></button>
           </li>
         ))}
@@ -412,12 +438,13 @@ function AiTool({ id, ph }) {
 const TOOLS = [
   { id: 'grade', kind: 'edit', name: 'Color Grader', icon: 'sliders', hue: 270, desc: 'Preview looks on your own clip or image and save a graded frame.', C: ColorGrader },
   { id: 'aspect', kind: 'edit', name: 'Aspect Ratio & Safe Zones', icon: 'maximize', hue: 200, desc: 'Export sizes for every platform, with safe-zone guides.', C: AspectTool },
-  { id: 'tc', kind: 'edit', name: 'Timecode & Speed', icon: 'clock', hue: 20, desc: 'Convert frames to timecode and work out new clip lengths.', C: TimecodeTool },
-  { id: 'bpm', kind: 'edit', name: 'Tap BPM', icon: 'music', hue: 330, desc: 'Find a song\'s tempo and the beat intervals to cut on.', C: TapBpm },
+  { id: 'thumb', kind: 'edit', name: 'Thumbnail Maker', icon: 'image', hue: 20, desc: 'Make a 1280×720 thumbnail with big text over any image.', C: ThumbnailMaker },
+  { id: 'script', kind: 'ai', name: 'Script Writer', icon: 'fileText', hue: 160, desc: 'A full short-video script with hook, key points and call to action.', C: () => <AiTool id="script" ph="What is your video about?" /> },
   { id: 'hooks', kind: 'ai', name: 'Hook Writer', icon: 'zap', hue: 45, desc: 'Opening lines that stop the scroll in the first 3 seconds.', C: () => <AiTool id="hooks" ph="What is your video about?" /> },
-  { id: 'titles', kind: 'ai', name: 'Title Generator', icon: 'type', hue: 160, desc: 'Clear, clickable titles for your videos.', C: () => <AiTool id="titles" ph="Video topic" /> },
-  { id: 'hashtags', kind: 'ai', name: 'Hashtag Finder', icon: 'hash', hue: 230, desc: 'A ready set of hashtags for Shorts, Reels and TikTok.', C: () => <AiTool id="hashtags" ph="Main keyword" /> },
-  { id: 'shots', kind: 'ai', name: 'Shot List Planner', icon: 'list', hue: 300, desc: 'Turn an idea into a shot-by-shot plan before you film.', C: () => <AiTool id="shots" ph="Describe your video idea" /> },
+  { id: 'titles', kind: 'ai', name: 'Title Generator', icon: 'type', hue: 230, desc: 'Clear, clickable titles for your videos.', C: () => <AiTool id="titles" ph="Video topic" /> },
+  { id: 'captions', kind: 'ai', name: 'Caption & Hashtags', icon: 'msg', hue: 300, desc: 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.', C: () => <AiTool id="captions" ph="Video topic" /> },
+  { id: 'ideas', kind: 'ai', name: 'Video Idea Generator', icon: 'bulb', hue: 90, desc: 'Fresh video ideas for your niche, each with an angle.', C: () => <AiTool id="ideas" ph="Your niche or channel type" /> },
+  { id: 'shots', kind: 'ai', name: 'Shot List Planner', icon: 'list', hue: 345, desc: 'Turn an idea into a shot-by-shot plan before you film.', C: () => <AiTool id="shots" ph="Describe your video idea" /> },
 ];
 
 /* ---------- APP ---------- */
@@ -441,8 +468,8 @@ function App() {
       {!lang && <LangPicker onPick={pickLang} />}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-ink/40 px-5 py-3 backdrop-blur-md">
         <button onClick={() => go(null)} className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-ink neon"><Icon n="video" s={22} /></span>
-          <span className="text-xl font-extrabold tracking-tight">ClipMed</span>
+          <Logo s={40} />
+          <span className="text-xl font-extrabold tracking-tight">Clip<span className="text-accent">Med</span></span>
         </button>
         <div className="flex items-center gap-2">
           {tool && <button onClick={() => go(null)} className={ghost}><Icon n="back" s={16} c="rtl:rotate-180" /> {tr('All tools')}</button>}
@@ -455,6 +482,7 @@ function App() {
       <main className="mx-auto max-w-6xl px-5 pb-16">
         {tool ? (
           <section className="pt-8">
+            <div className="glass mb-6 h-36 overflow-hidden rounded-2xl"><Cover id={tool.id} hue={tool.hue} /></div>
             <div className="mb-6 flex items-start gap-4">
               <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent text-ink neon"><Icon n={tool.icon} s={24} /></span>
               <div><h1 className="text-3xl font-extrabold tracking-tight">{tr(tool.name)}</h1><p className="mt-1 text-gray-400">{tr(tool.desc)}</p></div>
@@ -473,7 +501,7 @@ function App() {
                   <span className="badge glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold text-white" style={{ animationDelay: '.6s' }}>✨ {tr('100% Free')}</span>
                 </div>
                 <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">{tr('Edit faster with tools that work right here.')}</h1>
-                <p className="mt-4 max-w-lg text-gray-400 md:text-lg">{tr('Grade footage, size your export, cut to the beat, and plan your next video with AI. No downloads, no sign-up.')}</p>
+                <p className="mt-4 max-w-lg text-gray-400 md:text-lg">{tr('Grade footage, size your export, design thumbnails, and write scripts, hooks and captions with AI. No downloads, no sign-up.')}</p>
               </div>
               <HeroArt />
             </section>
@@ -499,7 +527,7 @@ function App() {
                 {list.map((t, i) => (
                   <button key={t.id} onClick={() => go(t.id)} className="group glass glow overflow-hidden rounded-2xl text-start">
                     <div className="relative h-40">
-                      <Cover hue={t.hue} kind={t.kind} seed={i + 1} />
+                      <Cover id={t.id} hue={t.hue} />
                       <span className="absolute start-3 top-3 rounded-lg bg-black/40 px-3 py-1 text-xs font-semibold text-accent backdrop-blur-md">{t.kind === 'ai' ? tr('AI tool') : tr('Editing tool')}</span>
                       <span className="absolute bottom-3 end-3 grid h-10 w-10 place-items-center rounded-xl bg-accent text-ink neon"><Icon n={t.icon} /></span>
                     </div>
