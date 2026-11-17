@@ -26,6 +26,7 @@
       linear-gradient(180deg, #0b0d1e 0%, #0d1030 55%, #0a0b1c 100%); }
   .glass { background: rgba(27,30,71,.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,.1); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 40px -16px rgba(0,0,0,.6); }
+  @keyframes glitch { 0%, 82%, 100% { transform: translate(0); } 84% { transform: translate(var(--g), 0); } 88% { transform: translate(calc(var(--g) * -1), 1px); } 92% { transform: translate(calc(var(--g) * .6), -1px); } }
   .glass-lite { background: rgba(27,30,71,.55); border: 1px solid rgba(255,255,255,.1); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 40px -16px rgba(0,0,0,.6); }
   .glow { transition: box-shadow .25s, border-color .25s; }
   .glow:hover, .glow:focus-within { border-color: rgba(250,204,21,.45); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 0 34px -6px rgba(250,204,21,.35); }
@@ -46,7 +47,7 @@
 <div id="root"></div>
 <script>
 "use strict";
-const { useState, useMemo, useRef, useEffect } = React;
+const { useState, useMemo, useRef, useEffect, useContext } = React;
 /* ---------- CONFIG ---------- */
 const AI_ENDPOINT = '/api/ai';
 /* ---------- ICONS (inline, no library) ---------- */
@@ -106,6 +107,45 @@ const P = {
         React.createElement("rect", { x: "9", y: "9", width: "13", height: "13", rx: "2" }),
         React.createElement("path", { d: "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" })),
     check: React.createElement("polyline", { points: "20 6 9 17 4 12" }),
+    save: React.createElement(React.Fragment, null,
+        React.createElement("path", { d: "M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" }),
+        React.createElement("polyline", { points: "17 21 17 13 7 13 7 21" }),
+        React.createElement("polyline", { points: "7 3 7 8 15 8" })),
+    user: React.createElement(React.Fragment, null,
+        React.createElement("path", { d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }),
+        React.createElement("circle", { cx: "12", cy: "7", r: "4" })),
+    folder: React.createElement("path", { d: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" }),
+    logout: React.createElement(React.Fragment, null,
+        React.createElement("path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }),
+        React.createElement("polyline", { points: "16 17 21 12 16 7" }),
+        React.createElement("line", { x1: "21", y1: "12", x2: "9", y2: "12" })),
+    x: React.createElement(React.Fragment, null,
+        React.createElement("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+        React.createElement("line", { x1: "6", y1: "6", x2: "18", y2: "18" })),
+    edit: React.createElement(React.Fragment, null,
+        React.createElement("path", { d: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" }),
+        React.createElement("path", { d: "M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" })),
+    play: React.createElement("polygon", { points: "5 3 19 12 5 21 5 3" }),
+    pause: React.createElement(React.Fragment, null,
+        React.createElement("rect", { x: "6", y: "4", width: "4", height: "16" }),
+        React.createElement("rect", { x: "14", y: "4", width: "4", height: "16" })),
+    trash: React.createElement(React.Fragment, null,
+        React.createElement("polyline", { points: "3 6 5 6 21 6" }),
+        React.createElement("path", { d: "M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" }),
+        React.createElement("path", { d: "M10 11v6M14 11v6" }),
+        React.createElement("path", { d: "M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" })),
+    plus: React.createElement(React.Fragment, null,
+        React.createElement("line", { x1: "12", y1: "5", x2: "12", y2: "19" }),
+        React.createElement("line", { x1: "5", y1: "12", x2: "19", y2: "12" })),
+    minus: React.createElement("line", { x1: "5", y1: "12", x2: "19", y2: "12" }),
+    crop: React.createElement(React.Fragment, null,
+        React.createElement("path", { d: "M6.13 1L6 16a2 2 0 0 0 2 2h15" }),
+        React.createElement("path", { d: "M1 6.13L16 6a2 2 0 0 1 2 2v15" })),
+    activity: React.createElement("polyline", { points: "22 12 18 12 15 21 9 3 6 12 2 12" }),
+    volumeX: React.createElement(React.Fragment, null,
+        React.createElement("polygon", { points: "11 5 6 9 2 9 2 15 6 15 11 19 11 5" }),
+        React.createElement("line", { x1: "23", y1: "9", x2: "17", y2: "15" }),
+        React.createElement("line", { x1: "17", y1: "9", x2: "23", y2: "15" })),
     scissors: React.createElement(React.Fragment, null,
         React.createElement("circle", { cx: "6", cy: "6", r: "3" }),
         React.createElement("circle", { cx: "6", cy: "18", r: "3" }),
@@ -171,6 +211,24 @@ const I18N = {
         'Choose a photo': `Choisir une photo`, 'or drop it here': `ou déposez-la ici`, 'Loading the AI model (first time only)...': `Chargement du modèle IA (première fois seulement)...`,
         'Cutting out the subject...': `Détourage du sujet...`, 'Before / After': `Avant / Après`, 'Background': `Arrière-plan`, 'Transparent': `Transparent`, 'Color': `Couleur`, 'Blur': `Flou`,
         'Cutoff': `Seuil`, 'Edge softness': `Douceur des bords`, 'Soft shadow': `Ombre douce`, 'Download PNG': `Télécharger en PNG`,
+        'Defringe': `Anti-halo`,
+        'AI Studio & Timeline Pro': `Studio IA et timeline Pro`, 'A multi-track editor with AI auto-reframe, silence remover, beat sync and cinematic FX.': `Un éditeur multipiste avec recadrage auto IA, suppression des silences, synchro sur le rythme et effets cinéma.`,
+        'Import video': `Importer une vidéo`, 'Export': `Exporter`, 'Split': `Couper`, 'Delete': `Supprimer`, 'Duration': `Durée`, 'Video': `Vidéo`, 'Audio / Music': `Audio / Musique`, 'Text': `Texte`, 'AI Effects': `Effets IA`,
+        'AI Suite': `Suite IA`, 'Cinematic FX': `Effets cinéma`, 'Auto-Reframe 9:16': `Recadrage auto 9:16`, 'Turns 16:9 footage into vertical 9:16 and keeps the subject centered.': `Transforme le 16:9 en vertical 9:16 en gardant le sujet au centre.`,
+        'Tracking subject': `Suivi du sujet`, 'Silence Remover': `Suppression des silences`, 'Scan and cut': `Analyser et couper`, 'Scanning audio...': `Analyse de l'audio...`, 'gaps removed': `silences supprimés`, 'saved': `gagnées`,
+        'Demo mode: no audio loaded, results are simulated.': `Mode démo : aucun audio chargé, résultats simulés.`, 'Smart B-Roll Suggester': `Suggestions B-Roll intelligentes`, 'Describe your scene, e.g. rainy city at night': `Décrivez votre scène, ex. ville pluvieuse la nuit`,
+        'Suggest': `Suggérer`, 'Add to B-Roll track': `Ajouter à la piste B-Roll`, 'Auto Beat Sync': `Synchro auto sur le rythme`, 'Analyze beats': `Analyser le rythme`, 'Demo footage': `Séquence démo`,
+        'Preset': `Préréglage`, 'None': `Aucun`, 'Cyberpunk': `Cyberpunk`, 'Teal & Orange': `Teal et Orange`, 'Moody Film': `Film sombre`, 'Intensity': `Intensité`, 'Motion blur': `Flou de mouvement`,
+        'Export settings': `Paramètres d'export`, 'Resolution': `Résolution`, 'Format': `Format`, 'Estimated size': `Taille estimée`, 'Start render': `Lancer le rendu`, 'Analyzing timeline': `Analyse de la timeline`, 'Applying effects': `Application des effets`,
+        'Encoding video': `Encodage vidéo`, 'Finalizing': `Finalisation`, 'Render complete (simulation)': `Rendu terminé (simulation)`, 'This is a render simulator: no video file is created yet. You can download the project file.': `Ceci est un simulateur de rendu : aucun fichier vidéo n'est créé pour l'instant. Vous pouvez télécharger le fichier du projet.`,
+        'Download project file': `Télécharger le projet`, 'Close': `Fermer`,
+        'Sign In': `Se connecter`, 'Log In': `Connexion`, 'Create Account': `Créer un compte`, 'Email': `E-mail`, 'Password': `Mot de passe`, 'Continue with Google': `Continuer avec Google`, 'or': `ou`, 'Log Out': `Se déconnecter`,
+        'My Projects': `Mes projets`, 'Account Settings': `Paramètres du compte`, 'Save to Projects': `Enregistrer dans les projets`, 'Saved to My Projects': `Enregistré dans Mes projets`, 'Could not save': `Échec de l'enregistrement`, 'Copied': `Copié`,
+        'Enter a valid email.': `Saisissez un e-mail valide.`, 'Password must be at least 6 characters.': `Le mot de passe doit contenir au moins 6 caractères.`, 'Check your email to confirm your account.': `Vérifiez votre e-mail pour confirmer votre compte.`,
+        'Forgot password?': `Mot de passe oublié ?`, 'Password reset email sent.': `E-mail de réinitialisation envoyé.`, 'Please sign in to see your projects.': `Connectez-vous pour voir vos projets.`, 'All': `Tous`, 'Saved Scripts': `Scripts enregistrés`,
+        'Hooks': `Accroches`, 'Thumbnails': `Miniatures`, 'Studio Projects': `Projets Studio`, 'Other AI': `Autres IA`, 'Open / Edit': `Ouvrir / Modifier`, 'Copy': `Copier`, 'Delete this project?': `Supprimer ce projet ?`,
+        'No projects yet. Save your work from any tool and it will appear here.': `Aucun projet pour l'instant. Enregistrez votre travail depuis n'importe quel outil et il apparaîtra ici.`, 'Loading...': `Chargement...`,
+        'Signed in as': `Connecté en tant que`, 'Sign-in method': `Méthode de connexion`, 'Member since': `Membre depuis`, 'New password': `Nouveau mot de passe`, 'Update password': `Mettre à jour le mot de passe`, 'Password updated.': `Mot de passe mis à jour.`, 'clips': `clips`,
         'Smooth edges': `Lissage des bords`, 'Clean specks': `Nettoyer les points parasites`, 'High quality (bigger download)': `Haute qualité (téléchargement plus lourd)`,
         'Your photo never leaves your device. The AI model downloads once, then stays cached.': `Votre photo ne quitte jamais votre appareil. Le modèle IA se télécharge une fois, puis reste en cache.`,
         'Could not process the image. Check your connection and try again.': `Impossible de traiter l'image. Vérifiez votre connexion et réessayez.`,
@@ -215,6 +273,24 @@ const I18N = {
         'Choose a photo': `اختر صورة`, 'or drop it here': `أو أفلتها هنا`, 'Loading the AI model (first time only)...': `جارٍ تحميل نموذج الذكاء الاصطناعي (أول مرة فقط)...`,
         'Cutting out the subject...': `جارٍ فصل العنصر عن الخلفية...`, 'Before / After': `قبل / بعد`, 'Background': `الخلفية`, 'Transparent': `شفافة`, 'Color': `لون`, 'Blur': `ضبابية`,
         'Cutoff': `حد القص`, 'Edge softness': `نعومة الحواف`, 'Soft shadow': `ظل ناعم`, 'Download PNG': `تحميل PNG`,
+        'Defringe': `إزالة الهالة`,
+        'AI Studio & Timeline Pro': `ستوديو الذكاء الاصطناعي والتايملاين برو`, 'A multi-track editor with AI auto-reframe, silence remover, beat sync and cinematic FX.': `محرر متعدد المسارات مع إعادة التأطير الذكي وإزالة الصمت ومزامنة الإيقاع ومؤثرات سينمائية.`,
+        'Import video': `استيراد فيديو`, 'Export': `تصدير`, 'Split': `تقسيم`, 'Delete': `حذف`, 'Duration': `المدة`, 'Video': `فيديو`, 'Audio / Music': `صوت / موسيقى`, 'Text': `نص`, 'AI Effects': `مؤثرات الذكاء الاصطناعي`,
+        'AI Suite': `أدوات الذكاء الاصطناعي`, 'Cinematic FX': `مؤثرات سينمائية`, 'Auto-Reframe 9:16': `إعادة تأطير تلقائي 9:16`, 'Turns 16:9 footage into vertical 9:16 and keeps the subject centered.': `يحوّل لقطات 16:9 إلى عمودي 9:16 مع إبقاء العنصر في المنتصف.`,
+        'Tracking subject': `تتبّع العنصر`, 'Silence Remover': `إزالة الصمت`, 'Scan and cut': `افحص واقطع`, 'Scanning audio...': `جارٍ فحص الصوت...`, 'gaps removed': `فجوة تمت إزالتها`, 'saved': `تم توفيرها`,
+        'Demo mode: no audio loaded, results are simulated.': `وضع تجريبي: لا يوجد صوت، النتائج محاكاة.`, 'Smart B-Roll Suggester': `مقترح B-Roll ذكي`, 'Describe your scene, e.g. rainy city at night': `صف المشهد، مثلا مدينة ممطرة ليلا`,
+        'Suggest': `اقترح`, 'Add to B-Roll track': `أضف لمسار B-Roll`, 'Auto Beat Sync': `مزامنة الإيقاع التلقائية`, 'Analyze beats': `حلّل الإيقاع`, 'Demo footage': `لقطات تجريبية`,
+        'Preset': `النمط`, 'None': `بدون`, 'Cyberpunk': `سايبربانك`, 'Teal & Orange': `تيل وبرتقالي`, 'Moody Film': `فيلم داكن`, 'Intensity': `الشدة`, 'Motion blur': `ضبابية الحركة`,
+        'Export settings': `إعدادات التصدير`, 'Resolution': `الدقة`, 'Format': `الصيغة`, 'Estimated size': `الحجم التقديري`, 'Start render': `ابدأ التصيير`, 'Analyzing timeline': `تحليل التايملاين`, 'Applying effects': `تطبيق المؤثرات`,
+        'Encoding video': `ترميز الفيديو`, 'Finalizing': `إنهاء`, 'Render complete (simulation)': `اكتمل التصيير (محاكاة)`, 'This is a render simulator: no video file is created yet. You can download the project file.': `هذا محاكي للتصيير: لا يتم إنشاء ملف فيديو حاليا. يمكنك تحميل ملف المشروع.`,
+        'Download project file': `تحميل ملف المشروع`, 'Close': `إغلاق`,
+        'Sign In': `تسجيل الدخول`, 'Log In': `دخول`, 'Create Account': `إنشاء حساب`, 'Email': `البريد الإلكتروني`, 'Password': `كلمة المرور`, 'Continue with Google': `المتابعة عبر Google`, 'or': `أو`, 'Log Out': `تسجيل الخروج`,
+        'My Projects': `مشاريعي`, 'Account Settings': `إعدادات الحساب`, 'Save to Projects': `حفظ في المشاريع`, 'Saved to My Projects': `تم الحفظ في مشاريعي`, 'Could not save': `تعذّر الحفظ`, 'Copied': `تم النسخ`,
+        'Enter a valid email.': `أدخل بريدا إلكترونيا صالحا.`, 'Password must be at least 6 characters.': `يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.`, 'Check your email to confirm your account.': `تحقق من بريدك لتأكيد حسابك.`,
+        'Forgot password?': `نسيت كلمة المرور؟`, 'Password reset email sent.': `تم إرسال رسالة إعادة تعيين كلمة المرور.`, 'Please sign in to see your projects.': `سجّل الدخول لرؤية مشاريعك.`, 'All': `الكل`, 'Saved Scripts': `السكريبتات المحفوظة`,
+        'Hooks': `الافتتاحيات`, 'Thumbnails': `الصور المصغّرة`, 'Studio Projects': `مشاريع الاستوديو`, 'Other AI': `أدوات AI أخرى`, 'Open / Edit': `فتح / تعديل`, 'Copy': `نسخ`, 'Delete this project?': `حذف هذا المشروع؟`,
+        'No projects yet. Save your work from any tool and it will appear here.': `لا توجد مشاريع بعد. احفظ عملك من أي أداة وسيظهر هنا.`, 'Loading...': `جارٍ التحميل...`,
+        'Signed in as': `مسجّل باسم`, 'Sign-in method': `طريقة الدخول`, 'Member since': `عضو منذ`, 'New password': `كلمة مرور جديدة`, 'Update password': `تحديث كلمة المرور`, 'Password updated.': `تم تحديث كلمة المرور.`, 'clips': `مقاطع`,
         'Smooth edges': `تنعيم الحواف`, 'Clean specks': `إزالة النقاط الشاردة`, 'High quality (bigger download)': `جودة عالية (تحميل أكبر)`,
         'Your photo never leaves your device. The AI model downloads once, then stays cached.': `صورتك لا تغادر جهازك. يتم تحميل النموذج مرة واحدة ثم يبقى مخزّنًا.`,
         'Could not process the image. Check your connection and try again.': `تعذّرت معالجة الصورة. تحقق من اتصالك وحاول مرة أخرى.`,
@@ -281,6 +357,11 @@ const ART = {
         React.createElement("circle", { cx: "100", cy: "40", r: "15", fill: "#fff" }),
         React.createElement("path", { d: "M68 90c0-20 14-30 32-30s32 10 32 30z", fill: "#fff" }),
         React.createElement("circle", { cx: "100", cy: "40", r: "19", fill: "none", stroke: "#FACC15", strokeWidth: "2", strokeDasharray: "4 3" })),
+    studio: () => React.createElement(React.Fragment, null,
+        React.createElement("rect", { x: "62", y: "6", width: "76", height: "40", rx: "5", fill: "#0b0d1e", opacity: ".6", stroke: "#fff", strokeOpacity: ".5" }),
+        React.createElement("polygon", { points: "94,18 94,34 108,26", fill: "#FACC15" }),
+        [[14, 56, 70, '#6366F1'], [92, 56, 60, '#6366F1'], [40, 65, 50, '#3DDBD9'], [14, 74, 130, '#22C55E'], [100, 83, 56, '#F472B6'], [24, 83, 40, '#FACC15']].map(([x, y, w, c], i) => React.createElement("rect", { key: i, x: x, y: y, width: w, height: "7", rx: "3", fill: c, opacity: ".9" })),
+        React.createElement("line", { x1: "96", y1: "50", x2: "96", y2: "94", stroke: "#FACC15", strokeWidth: "2" })),
     script: () => React.createElement(React.Fragment, null,
         React.createElement("rect", { x: "62", y: "12", width: "76", height: "78", rx: "7", fill: "#fff", opacity: ".93" }),
         React.createElement("rect", { x: "72", y: "24", width: "40", height: "6", rx: "3", fill: "#12142F" }),
@@ -453,13 +534,13 @@ function AspectTool() {
                     "px")),
             React.createElement("p", { className: "text-xs text-gray-400" }, tr('Yellow line: action safe (90%). White line: title safe (80%).')))));
 }
-function ThumbnailMaker() {
+function ThumbnailMaker({ initial }) {
     const [img, setImg] = useState(null);
-    const [text, setText] = useState('MY NEW VIDEO');
-    const [size, setSize] = useState(110);
-    const [color, setColor] = useState('#FACC15');
-    const [pos, setPos] = useState('bottom');
-    const [dark, setDark] = useState(35);
+    const [text, setText] = useState(initial ? initial.text : 'MY NEW VIDEO');
+    const [size, setSize] = useState(initial ? initial.size : 110);
+    const [color, setColor] = useState(initial ? initial.color : '#FACC15');
+    const [pos, setPos] = useState(initial ? initial.pos : 'bottom');
+    const [dark, setDark] = useState(initial ? initial.dark : 35);
     const cv = useRef(null);
     useEffect(() => {
         const c = cv.current, x = c.getContext('2d');
@@ -500,6 +581,7 @@ function ThumbnailMaker() {
     const onFile = (e) => { const f = e.target.files[0]; if (!f)
         return; const i = new Image(); i.onload = () => setImg(i); i.src = URL.createObjectURL(f); };
     const save = () => { const a = document.createElement('a'); a.href = cv.current.toDataURL('image/png'); a.download = 'clipmed-thumbnail.png'; a.click(); };
+    const snap = () => { const sm = document.createElement('canvas'); sm.width = 480; sm.height = 270; sm.getContext('2d').drawImage(cv.current, 0, 0, 480, 270); return { text, size, color, pos, dark, preview: sm.toDataURL('image/jpeg', 0.6) }; };
     return (React.createElement("div", { className: "grid gap-5 lg:grid-cols-[1fr_320px]" },
         React.createElement(Card, null,
             React.createElement("canvas", { ref: cv, className: "w-full rounded-xl" })),
@@ -523,7 +605,8 @@ function ThumbnailMaker() {
             React.createElement("button", { onClick: save, className: `${btn} w-full` },
                 React.createElement(Icon, { n: "camera" }),
                 " ",
-                tr('Download thumbnail (PNG)')))));
+                tr('Download thumbnail (PNG)')),
+            React.createElement(SaveBtn, { kind: "thumb", title: text, data: snap }))));
 }
 const TF_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
 const BG_MODEL = 'briaai/RMBG-1.4';
@@ -581,7 +664,7 @@ async function segment(ai, url, w, h) {
     const m = await ai.RawImage.fromTensor(output[0].mul(255).to('uint8')).resize(w, h);
     return m.data;
 }
-function compose(base, mask, o) {
+function compose(base, mask, o, fg) {
     const w = base.width, h = base.height;
     const cut = document.createElement('canvas');
     cut.width = w;
@@ -590,9 +673,16 @@ function compose(base, mask, o) {
     cx.drawImage(base, 0, 0);
     const id = cx.getImageData(0, 0, w, h), d = id.data;
     const mid = o.cut * 2.55, half = Math.max(o.soft * 1.275, 0.5), lo = mid - half, span = half * 2;
+    const df = o.defringe / 100;
     for (let i = 0, n = w * h; i < n; i++) {
-        const a = (mask[i] - lo) / span;
-        d[i * 4 + 3] = a <= 0 ? 0 : a >= 1 ? 255 : a * 255;
+        const a = (mask[i] - lo) / span, j = i * 4;
+        d[j + 3] = a <= 0 ? 0 : a >= 1 ? 255 : a * 255;
+        if (fg && df > 0 && mask[i] < 245 && fg[j + 3] > 10) { // pull edge colours toward the nearby subject colour (removes the light halo)
+            const wg = df * Math.min(1, (245 - mask[i]) / 120);
+            d[j] += (fg[j] - d[j]) * wg;
+            d[j + 1] += (fg[j + 1] - d[j + 1]) * wg;
+            d[j + 2] += (fg[j + 2] - d[j + 2]) * wg;
+        }
     }
     cx.putImageData(id, 0, 0);
     const out = document.createElement('canvas');
@@ -688,17 +778,41 @@ function cleanSpecks(m, w, h, minArea) {
     }
     return out;
 }
+function buildFg(base, m, w, h) {
+    const core = document.createElement('canvas');
+    core.width = w;
+    core.height = h;
+    const cx = core.getContext('2d');
+    cx.drawImage(base, 0, 0);
+    const id = cx.getImageData(0, 0, w, h), d = id.data;
+    for (let i = 0, n = w * h; i < n; i++)
+        d[i * 4 + 3] = m[i] >= 235 ? 255 : 0;
+    cx.putImageData(id, 0, 0);
+    const sm = document.createElement('canvas');
+    sm.width = Math.max(8, w >> 3);
+    sm.height = Math.max(8, h >> 3);
+    const sx = sm.getContext('2d');
+    sx.imageSmoothingQuality = 'high';
+    sx.drawImage(core, 0, 0, sm.width, sm.height);
+    const up = document.createElement('canvas');
+    up.width = w;
+    up.height = h;
+    const ux = up.getContext('2d');
+    ux.imageSmoothingQuality = 'high';
+    ux.drawImage(sm, 0, 0, w, h);
+    return ux.getImageData(0, 0, w, h).data;
+}
 const CHECKER = { backgroundImage: 'conic-gradient(#3a3d63 25%, #2a2d52 0 50%, #3a3d63 0 75%, #2a2d52 0)', backgroundSize: '20px 20px' };
 function BgRemover() {
     const [src, setSrc] = useState(null);
     const [stage, setStage] = useState('idle');
     const [pct, setPct] = useState(0);
     const [err, setErr] = useState('');
-    const [o, setO] = useState({ bg: 'transparent', color: '#FFFFFF', cut: 50, soft: 14, smooth: 1, specks: 40, shadow: false });
+    const [o, setO] = useState({ bg: 'transparent', color: '#FFFFFF', cut: 50, soft: 14, smooth: 1, specks: 40, defringe: 70, shadow: false });
     const [hq, setHq] = useState(false);
     const [ver, setVer] = useState(0);
     const [split, setSplit] = useState(0);
-    const base = useRef(null), mask = useRef(null), m2 = useRef(null), photoRef = useRef(null), view = useRef(null);
+    const base = useRef(null), mask = useRef(null), m2 = useRef(null), fg = useRef(null), photoRef = useRef(null), view = useRef(null);
     const set = (k, v) => setO((p) => ({ ...p, [k]: v }));
     useEffect(() => {
         if (stage !== 'done')
@@ -706,6 +820,7 @@ function BgRemover() {
         const t = setTimeout(() => {
             const { width: w, height: h } = base.current;
             m2.current = cleanSpecks(boxBlur(mask.current, w, h, o.smooth), w, h, (o.specks * w * h) / 20000);
+            fg.current = buildFg(base.current, m2.current, w, h);
             setVer((v) => v + 1);
         }, m2.current ? 150 : 0);
         return () => clearTimeout(t);
@@ -713,18 +828,19 @@ function BgRemover() {
     useEffect(() => {
         if (stage !== 'done' || !m2.current || !view.current)
             return;
-        const out = compose(base.current, m2.current, o);
+        const out = compose(base.current, m2.current, o, fg.current);
         const c = view.current;
         c.width = out.width;
         c.height = out.height;
         c.getContext('2d').drawImage(out, 0, 0);
-    }, [ver, o.bg, o.color, o.cut, o.soft, o.shadow]);
+    }, [ver, o.bg, o.color, o.cut, o.soft, o.shadow, o.defringe]);
     const run = async (photo, quality) => {
         setErr('');
         setStage('loading');
         setPct(0);
         setSplit(0);
         m2.current = null;
+        fg.current = null;
         try {
             base.current = photo.canvas;
             setSrc(photo.url);
@@ -817,6 +933,11 @@ function BgRemover() {
                     ": ",
                     o.specks,
                     React.createElement("input", { type: "range", min: "0", max: "100", value: o.specks, onChange: (e) => set('specks', +e.target.value) })),
+                React.createElement("label", { className: "block text-sm text-gray-300" },
+                    tr('Defringe'),
+                    ": ",
+                    o.defringe,
+                    React.createElement("input", { type: "range", min: "0", max: "100", value: o.defringe, onChange: (e) => set('defringe', +e.target.value) })),
                 React.createElement("label", { className: "flex items-center gap-2 text-sm text-gray-300" },
                     React.createElement("input", { type: "checkbox", checked: o.shadow, onChange: (e) => set('shadow', e.target.checked) }),
                     " ",
@@ -827,6 +948,659 @@ function BgRemover() {
                     tr('Download PNG')))),
             React.createElement("p", { className: "text-xs text-gray-400" }, tr('Your photo never leaves your device. The AI model downloads once, then stays cached.')))));
 }
+/* ---------- AI STUDIO & TIMELINE PRO ---------- */
+const TRACKS = [['video', 'Video', '#6366F1'], ['broll', 'B-Roll', '#3DDBD9'], ['audio', 'Audio / Music', '#22C55E'], ['text', 'Text', '#FACC15'], ['fx', 'AI Effects', '#F472B6']];
+const TCOLOR = Object.fromEntries(TRACKS.map(([k, , c]) => [k, c]));
+let CID = 100;
+const nid = () => ++CID;
+const DEMO = () => [
+    { id: nid(), track: 'video', start: 0, dur: 14, off: 0, label: 'Demo footage' },
+    { id: nid(), track: 'broll', start: 4, dur: 3, off: 0, label: 'City B-roll' },
+    { id: nid(), track: 'audio', start: 0, dur: 14, off: 0, label: 'Music' },
+    { id: nid(), track: 'text', start: 1, dur: 4, off: 0, label: 'Your title here' },
+    { id: nid(), track: 'fx', start: 0, dur: 14, off: 0, label: 'Color grade' },
+];
+const FX_PRESETS = {
+    none: { b: 1, c: 1, s: 1, h: 0, sep: 0 },
+    cyber: { b: 0.95, c: 1.25, s: 1.7, h: -35, sep: 0, ov: 'linear-gradient(135deg, rgba(255,0,160,.45), rgba(0,220,255,.45))', blend: 'soft-light' },
+    teal: { b: 1, c: 1.15, s: 1.2, h: 0, sep: 0.05, ov: 'linear-gradient(180deg, rgba(0,170,180,.5), rgba(255,140,40,.5))', blend: 'soft-light' },
+    moody: { b: 0.82, c: 1.3, s: 0.75, h: 0, sep: 0.15, vig: true },
+    vhs: { b: 1.05, c: 1.1, s: 1.3, h: 0, sep: 0.1, scan: true, chroma: true },
+};
+const FX_NAMES = [['none', 'None'], ['cyber', 'Cyberpunk'], ['teal', 'Teal & Orange'], ['moody', 'Moody Film'], ['vhs', 'VHS']];
+const RES_KBPS = { '720p': 4000, '1080p': 8000, '4K': 35000 };
+const fmtT = (s) => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+function splitClip(cs, id, at) {
+    const c = cs.find((x) => x.id === id);
+    if (!c || at <= c.start + 0.1 || at >= c.start + c.dur - 0.1)
+        return cs;
+    const a = at - c.start;
+    return cs.flatMap((x) => (x.id !== id ? [x] : [{ ...x, dur: a }, { ...x, id: nid(), start: at, off: x.off + a, dur: x.dur - a }]));
+}
+function splitAtTimes(cs, track, times) {
+    let out = cs;
+    times.forEach((t) => { const c = out.find((x) => x.track === track && t > x.start && t < x.start + x.dur); if (c)
+        out = splitClip(out, c.id, t); });
+    return out;
+}
+// ripple-delete time ranges on every track
+function cutRanges(cs, ranges) {
+    const rs = ranges.slice().sort((a, b) => a[0] - b[0]);
+    const removedBefore = (t) => rs.reduce((s, [a, b]) => s + Math.max(0, Math.min(t, b) - a), 0);
+    const out = [];
+    cs.forEach((c) => {
+        let pieces = [[c.start, c.start + c.dur]];
+        rs.forEach(([a, b]) => { pieces = pieces.flatMap(([s, e]) => (b <= s || a >= e ? [[s, e]] : [[s, Math.min(e, a)], [Math.max(s, b), e]].filter(([x, y]) => y - x > 0.02))); });
+        pieces.forEach(([s, e]) => out.push({ ...c, id: nid(), start: s - removedBefore(s), off: c.off + (s - c.start), dur: e - s }));
+    });
+    return out;
+}
+async function analyzeAudio(file) {
+    const AC = window.AudioContext || window.webkitAudioContext, ctx = new AC();
+    const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+    const ch = buf.getChannelData(0), hop = Math.floor(buf.sampleRate * 0.02), env = [];
+    for (let i = 0; i + hop <= ch.length; i += hop) {
+        let s = 0;
+        for (let j = 0; j < hop; j++)
+            s += ch[i + j] * ch[i + j];
+        env.push(Math.sqrt(s / hop));
+    }
+    if (ctx.close)
+        ctx.close();
+    return { env, step: hop / buf.sampleRate, duration: buf.duration };
+}
+function findSilences(env, step, minLen = 0.5, pad = 0.12) {
+    const sorted = Float32Array.from(env).sort(), p95 = sorted[Math.floor(sorted.length * 0.95)] || 0, thr = Math.max(p95 * 0.08, 1e-4);
+    const out = [];
+    let a = -1;
+    for (let i = 0; i <= env.length; i++) {
+        const quiet = i < env.length && env[i] < thr;
+        if (quiet && a < 0)
+            a = i;
+        if (!quiet && a >= 0) {
+            const s = a * step, e = i * step;
+            if (e - s >= minLen)
+                out.push([s + pad, e - pad]);
+            a = -1;
+        }
+    }
+    return out.filter(([s, e]) => e - s > 0.1);
+}
+function findBeats(env, step, duration) {
+    const n = env.length;
+    const sm = env.map((_, i) => { let s = 0, c = 0; for (let j = Math.max(0, i - 1); j <= Math.min(n - 1, i + 1); j++) {
+        s += env[j];
+        c++;
+    } return s / c; });
+    const on = sm.map((v, i) => (i ? Math.max(0, v - sm[i - 1]) : 0));
+    const thr = (on.reduce((a, b) => a + b, 0) / n) * 2 + 1e-6, peaks = [];
+    let last = -1e9;
+    for (let i = 1; i < n - 1; i++)
+        if (on[i] > thr && on[i] >= on[i - 1] && on[i] >= on[i + 1] && (i - last) * step >= 0.28) {
+            peaks.push(i * step);
+            last = i;
+        }
+    if (peaks.length < 4)
+        return null;
+    const iv = peaks.slice(1).map((p, i) => p - peaks[i]).sort((a, b) => a - b);
+    let bpm = 60 / iv[Math.floor(iv.length / 2)];
+    while (bpm < 70)
+        bpm *= 2;
+    while (bpm > 180)
+        bpm /= 2;
+    const period = 60 / bpm, times = [];
+    for (let x = peaks[0] % period; x < duration; x += period)
+        times.push(+x.toFixed(3));
+    return { bpm: Math.round(bpm), times };
+}
+function StudioPro({ initial }) {
+    const [clips, setClips] = useState(() => { if (initial && initial.clips) {
+        CID = Math.max(CID, ...initial.clips.map((c) => c.id));
+        return initial.clips;
+    } return DEMO(); });
+    const [t, setT] = useState(0);
+    const [playing, setPlaying] = useState(false);
+    const [sel, setSel] = useState(null);
+    const [pps, setPps] = useState(40);
+    const [fileUrl, setFileUrl] = useState(null);
+    const [tab, setTab] = useState('ai');
+    const [reframe, setReframe] = useState(initial ? !!initial.reframe : false);
+    const [fx, setFx] = useState(initial && initial.fx ? initial.fx : { preset: 'teal', k: 80, mb: 0, glitch: 0 });
+    const [scan, setScan] = useState({ busy: false, msg: '', demo: false });
+    const [beats, setBeats] = useState(null);
+    const [bb, setBb] = useState(false);
+    const [idea, setIdea] = useState('');
+    const [ideas, setIdeas] = useState([]);
+    const [ideaBusy, setIdeaBusy] = useState(false);
+    const [ex, setEx] = useState(null);
+    const vref = useRef(null), anal = useRef(null), timer = useRef(null);
+    const total = Math.max(1, ...clips.map((c) => c.start + c.dur));
+    useEffect(() => {
+        if (!playing)
+            return;
+        let raf, last = performance.now();
+        const tick = (now) => {
+            const dt = (now - last) / 1000;
+            last = now;
+            setT((p) => { const n = p + dt; if (n >= total) {
+                setPlaying(false);
+                return total;
+            } return n; });
+            raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
+    }, [playing, total]);
+    useEffect(() => {
+        const v = vref.current;
+        if (!v || !fileUrl)
+            return;
+        const vc = clips.find((c) => c.track === 'video' && t >= c.start && t < c.start + c.dur);
+        if (!vc) {
+            v.pause();
+            return;
+        }
+        const target = vc.off + (t - vc.start);
+        if (Math.abs(v.currentTime - target) > (playing ? 0.35 : 0.04))
+            v.currentTime = target;
+        if (playing && v.paused)
+            v.play().catch(() => { });
+        if (!playing && !v.paused)
+            v.pause();
+    }, [t, playing, clips, fileUrl]);
+    useEffect(() => () => clearInterval(timer.current), []);
+    const onImport = (e) => {
+        const f = e.target.files[0];
+        if (!f)
+            return;
+        const url = URL.createObjectURL(f), probe = document.createElement('video');
+        probe.preload = 'metadata';
+        probe.src = url;
+        probe.onloadedmetadata = async () => {
+            const d = probe.duration || 10;
+            setFileUrl(url);
+            setT(0);
+            setPlaying(false);
+            setBeats(null);
+            setSel(null);
+            anal.current = null;
+            setScan({ busy: false, msg: '', demo: false });
+            setClips((cs) => [...cs.filter((c) => c.track !== 'video' && c.track !== 'audio'), { id: nid(), track: 'video', start: 0, dur: d, off: 0, label: f.name }, { id: nid(), track: 'audio', start: 0, dur: d, off: 0, label: 'Audio' }]);
+            if (f.size < 80e6) {
+                try {
+                    anal.current = await analyzeAudio(f);
+                }
+                catch (err) {
+                    anal.current = null;
+                }
+            }
+        };
+    };
+    const togglePlay = () => { if (t >= total - 0.05)
+        setT(0); setPlaying((p) => !p); };
+    const doSplit = () => {
+        const inside = (c) => t > c.start && t < c.start + c.dur;
+        const target = clips.find((c) => c.id === sel && inside(c)) || clips.find((c) => c.track === 'video' && inside(c));
+        if (target)
+            setClips((cs) => splitClip(cs, target.id, t));
+    };
+    const doDelete = () => { if (sel) {
+        setClips((cs) => cs.filter((c) => c.id !== sel));
+        setSel(null);
+    } };
+    const selClip = clips.find((c) => c.id === sel);
+    const setDur = (d) => selClip && setClips((cs) => cs.map((c) => (c.id === sel ? { ...c, dur: Math.max(0.5, +(c.dur + d).toFixed(2)) } : c)));
+    const removeSilence = async () => {
+        setScan({ busy: true, msg: '', demo: false });
+        await new Promise((r) => setTimeout(r, 1300));
+        let gaps = [], demo = false;
+        if (anal.current) {
+            const sil = findSilences(anal.current.env, anal.current.step);
+            clips.filter((c) => c.track === 'video').forEach((c) => sil.forEach(([s, e]) => {
+                const a = Math.max(s, c.off), b = Math.min(e, c.off + c.dur);
+                if (b - a > 0.1)
+                    gaps.push([c.start + a - c.off, c.start + b - c.off]);
+            }));
+        }
+        else {
+            demo = true;
+            gaps = [[0.22, 0.8], [0.48, 1.1], [0.71, 0.9]].map(([p, l]) => [total * p, total * p + l]).filter(([, e]) => e < total);
+        }
+        const saved = gaps.reduce((s, [a, b]) => s + b - a, 0);
+        if (gaps.length) {
+            setClips((cs) => cutRanges(cs, gaps));
+            setT(0);
+        }
+        setScan({ busy: false, msg: `${gaps.length} ${tr('gaps removed')} · ${saved.toFixed(1)}s ${tr('saved')}`, demo });
+    };
+    const analyzeBeats = async () => {
+        setBb(true);
+        await new Promise((r) => setTimeout(r, 900));
+        let r = anal.current ? findBeats(anal.current.env, anal.current.step, anal.current.duration) : null, sim = false;
+        if (!r) {
+            sim = true;
+            r = { bpm: 120, times: Array.from({ length: Math.floor(total / 0.5) }, (_, i) => i * 0.5) };
+        }
+        setBeats({ ...r, sim });
+        setBb(false);
+    };
+    const cutBeats = (n) => beats && setClips((cs) => splitAtTimes(cs, 'video', beats.times.filter((_, i) => i && i % n === 0)));
+    const suggest = async () => {
+        if (!idea.trim())
+            return;
+        setIdeaBusy(true);
+        let list;
+        try {
+            list = await runAI('broll', idea.trim());
+        }
+        catch (e) {
+            list = [`Wide establishing shot: ${idea}`, `Slow-motion close-up: ${idea}`, `Drone aerial view: ${idea}`, `Handheld walking shot: ${idea}`, `Time-lapse: ${idea}`];
+        }
+        setIdeas(list.slice(0, 6));
+        setIdeaBusy(false);
+    };
+    const addBroll = (label) => setClips((cs) => [...cs, { id: nid(), track: 'broll', start: +t.toFixed(2), dur: 3, off: 0, label: label.slice(0, 28) }]);
+    const startRender = () => {
+        clearInterval(timer.current);
+        setEx((e) => ({ ...e, prog: 0, run: true, done: false }));
+        const speed = ex.res === '4K' ? 1.2 : ex.res === '1080p' ? 2 : 3;
+        timer.current = setInterval(() => setEx((e) => {
+            const p = Math.min(100, e.prog + speed + Math.random() * 2);
+            if (p >= 100) {
+                clearInterval(timer.current);
+                return { ...e, prog: 100, run: false, done: true };
+            }
+            return { ...e, prog: p };
+        }), 140);
+    };
+    const dlProject = () => {
+        const b = new Blob([JSON.stringify({ app: 'ClipMed Studio', clips, fx, reframe, export: { res: ex.res, fps: ex.fps, fmt: ex.fmt } }, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(b);
+        a.download = 'clipmed-project.json';
+        a.click();
+    };
+    const P = FX_PRESETS[fx.preset], k = fx.k / 100, lerp = (v) => 1 + (v - 1) * k;
+    const filter = `url(#mb) brightness(${lerp(P.b)}) contrast(${lerp(P.c)}) saturate(${lerp(P.s)}) hue-rotate(${P.h * k}deg) sepia(${P.sep * k})` + (P.chroma ? ` drop-shadow(${2 * k}px 0 0 rgba(255,0,60,.4)) drop-shadow(${-2 * k}px 0 0 rgba(0,220,255,.4))` : '');
+    const focus = reframe ? 50 + 22 * Math.sin(t * 0.7) + 10 * Math.sin(t * 1.9 + 1) : 50;
+    const at = (name) => clips.find((c) => c.track === name && t >= c.start && t < c.start + c.dur);
+    const bro = at('broll'), txt = at('text');
+    const W = Math.max(total + 4, 20) * pps;
+    const mb = ex ? (RES_KBPS[ex.res] * (ex.fps / 30) * (ex.fmt === 'MOV' ? 1.25 : 1) * total) / 8 / 1024 : 0;
+    const stage = !ex ? '' : ex.prog < 15 ? 'Analyzing timeline' : ex.prog < 45 ? 'Applying effects' : ex.prog < 92 ? 'Encoding video' : 'Finalizing';
+    const scrub = (e) => { const r = e.currentTarget.getBoundingClientRect(); setT(Math.min(total, Math.max(0, (e.clientX - r.left) / pps))); };
+    return (React.createElement("div", { className: "space-y-5" },
+        React.createElement("svg", { width: "0", height: "0", className: "absolute", "aria-hidden": "true" },
+            React.createElement("filter", { id: "mb" },
+                React.createElement("feGaussianBlur", { stdDeviation: `${fx.mb} 0` }))),
+        React.createElement("div", { className: "flex flex-wrap gap-2" },
+            React.createElement("label", { className: `${btn} cursor-pointer` },
+                React.createElement(Icon, { n: "upload", s: 16 }),
+                " ",
+                tr('Import video'),
+                React.createElement("input", { type: "file", accept: "video/*", className: "sr-only", onChange: onImport })),
+            React.createElement("button", { onClick: () => setEx({ res: '1080p', fps: 30, fmt: 'MP4', prog: 0, run: false, done: false }), className: ghost },
+                React.createElement(Icon, { n: "download", s: 16 }),
+                " ",
+                tr('Export')),
+            React.createElement(SaveBtn, { kind: "studio", title: `Studio · ${fmtT(total)}`, data: () => ({ clips, fx, reframe }) })),
+        React.createElement("div", { className: "grid gap-5 lg:grid-cols-[1fr_360px]" },
+            React.createElement("div", { className: "min-w-0 space-y-4" },
+                React.createElement(Card, { className: "space-y-3" },
+                    React.createElement("div", { className: "mx-auto overflow-hidden rounded-xl bg-black ring-1 ring-white/10", style: reframe ? { width: 'calc(44vh * 9 / 16)', aspectRatio: '9/16' } : { width: '100%', aspectRatio: '16/9' } },
+                        React.createElement("div", { className: "relative h-full w-full overflow-hidden", style: { animation: fx.glitch ? `glitch ${Math.max(0.4, 1.8 - fx.glitch / 70)}s steps(2, end) infinite` : 'none', '--g': `${fx.glitch / 8}px` } },
+                            fileUrl
+                                ? React.createElement("video", { ref: vref, src: fileUrl, playsInline: true, className: "h-full w-full object-cover", style: { objectPosition: `${focus}% 50%`, filter } })
+                                : React.createElement("div", { className: "grid h-full w-full place-items-center text-sm font-bold text-white/70", style: { background: `linear-gradient(${120 + t * 25}deg, #3b2f8f, #0ea5a4 50%, #f59e0b)`, backgroundPosition: `${focus}% 50%`, filter } }, tr('Demo footage')),
+                            P.ov && React.createElement("div", { className: "pointer-events-none absolute inset-0", style: { background: P.ov, opacity: k, mixBlendMode: P.blend } }),
+                            P.vig && React.createElement("div", { className: "pointer-events-none absolute inset-0", style: { background: 'radial-gradient(circle, transparent 45%, rgba(0,0,0,.75))', opacity: k } }),
+                            P.scan && React.createElement("div", { className: "pointer-events-none absolute inset-0", style: { background: 'repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px)', opacity: k } }),
+                            reframe && React.createElement("div", { className: "pointer-events-none absolute top-3 rounded-full border-2 border-dashed border-accent", style: { left: `calc(${focus}% - 22px)`, height: 44, width: 44 } },
+                                React.createElement("span", { className: "absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-accent" }, tr('Tracking subject'))),
+                            bro && React.createElement("div", { className: "pointer-events-none absolute end-2 top-2 grid h-1/4 w-1/3 place-items-center rounded-lg border border-white/40 bg-black/50 px-1 text-center text-[10px] text-white" }, bro.label),
+                            txt && React.createElement("div", { className: "pointer-events-none absolute inset-x-0 bottom-4 text-center text-lg font-extrabold text-white", style: { textShadow: '0 2px 8px #000' } }, txt.label))),
+                    React.createElement("input", { type: "range", min: "0", max: total, step: "0.05", value: t, onChange: (e) => { setPlaying(false); setT(+e.target.value); }, "aria-label": "Playhead" }),
+                    React.createElement("div", { className: "flex flex-wrap items-center gap-2" },
+                        React.createElement("button", { onClick: togglePlay, className: btn, "aria-label": "Play / Pause" },
+                            React.createElement(Icon, { n: playing ? 'pause' : 'play', s: 18 })),
+                        React.createElement("button", { onClick: doSplit, className: ghost },
+                            React.createElement(Icon, { n: "scissors", s: 16 }),
+                            " ",
+                            tr('Split')),
+                        React.createElement("button", { onClick: doDelete, disabled: !sel, className: `${ghost} disabled:opacity-40` },
+                            React.createElement(Icon, { n: "trash", s: 16 }),
+                            " ",
+                            tr('Delete')),
+                        React.createElement("span", { className: "flex items-center gap-1 text-sm text-gray-300" },
+                            tr('Duration'),
+                            ":",
+                            React.createElement("button", { onClick: () => setDur(-0.5), disabled: !sel, className: `${ghost} !px-2 disabled:opacity-40`, "aria-label": "-" },
+                                React.createElement(Icon, { n: "minus", s: 14 })),
+                            React.createElement("b", { className: "w-12 text-center text-white" }, selClip ? selClip.dur.toFixed(1) + 's' : '--'),
+                            React.createElement("button", { onClick: () => setDur(0.5), disabled: !sel, className: `${ghost} !px-2 disabled:opacity-40`, "aria-label": "+" },
+                                React.createElement(Icon, { n: "plus", s: 14 }))),
+                        React.createElement("span", { className: "ms-auto text-sm font-bold text-accent" },
+                            fmtT(t),
+                            " / ",
+                            fmtT(total)))),
+                React.createElement(Card, { className: "p-3" },
+                    React.createElement("div", { className: "flex" },
+                        React.createElement("div", { className: "w-24 shrink-0 text-xs text-gray-300" },
+                            React.createElement("div", { className: "h-6" }),
+                            TRACKS.map(([key, name, c]) => React.createElement("div", { key: key, className: "flex h-11 items-center gap-1.5 border-t border-white/5 px-1" },
+                                React.createElement("span", { className: "h-2 w-2 shrink-0 rounded-full", style: { background: c } }),
+                                React.createElement("span", { className: "truncate" }, tr(name))))),
+                        React.createElement("div", { className: "relative flex-1 overflow-x-auto" },
+                            React.createElement("div", { className: "relative", style: { width: W }, onPointerDown: scrub },
+                                React.createElement("div", { className: "relative h-6 border-b border-white/10" },
+                                    Array.from({ length: Math.ceil(W / pps) }, (_, s) => React.createElement("span", { key: s, className: "absolute top-0 border-s border-white/15 ps-1 text-[9px] text-gray-400", style: { left: s * pps, height: s % 5 ? 8 : 20 } }, s % 5 ? '' : s + 's')),
+                                    beats && beats.times.map((b) => React.createElement("span", { key: b, className: "absolute bottom-0 h-2 w-px bg-accent", style: { left: b * pps } }))),
+                                TRACKS.map(([key]) => (React.createElement("div", { key: key, className: "relative h-11 border-t border-white/5" }, clips.filter((c) => c.track === key).map((c) => (React.createElement("button", { key: c.id, onPointerDown: (e) => e.stopPropagation(), onClick: () => setSel(c.id === sel ? null : c.id), className: `absolute top-1 h-9 overflow-hidden rounded-md px-1.5 text-start text-[11px] font-semibold text-ink ${c.id === sel ? 'ring-2 ring-white' : ''}`, style: { left: c.start * pps, width: Math.max(c.dur * pps, 8), background: TCOLOR[key] } }, c.label)))))),
+                                React.createElement("div", { className: "pointer-events-none absolute bottom-0 top-0 w-0.5 bg-accent", style: { left: t * pps, boxShadow: '0 0 10px #FACC15' } })))),
+                    React.createElement("label", { className: "mt-2 flex items-center gap-2 text-xs text-gray-400" },
+                        "Zoom",
+                        React.createElement("input", { type: "range", min: "15", max: "120", value: pps, onChange: (e) => setPps(+e.target.value) })))),
+            React.createElement("div", { className: "space-y-4" },
+                React.createElement("div", { className: "flex gap-2" }, [['ai', 'AI Suite'], ['fx', 'Cinematic FX']].map(([key, l]) => React.createElement("button", { key: key, onClick: () => setTab(key), "aria-pressed": tab === key, className: `${ghost} flex-1 ${tab === key ? '!border-accent !text-accent' : ''}` }, tr(l)))),
+                tab === 'ai' ? (React.createElement(React.Fragment, null,
+                    React.createElement(Card, { className: "space-y-3" },
+                        React.createElement("h3", { className: "flex items-center gap-2 font-bold" },
+                            React.createElement(Icon, { n: "crop", s: 18 }),
+                            " ",
+                            tr('Auto-Reframe 9:16')),
+                        React.createElement("p", { className: "text-sm text-gray-400" }, tr('Turns 16:9 footage into vertical 9:16 and keeps the subject centered.')),
+                        React.createElement("button", { onClick: () => setReframe((r) => !r), "aria-pressed": reframe, className: `${reframe ? btn : ghost} w-full` }, reframe ? '9:16 ON' : '9:16 OFF')),
+                    React.createElement(Card, { className: "space-y-3" },
+                        React.createElement("h3", { className: "flex items-center gap-2 font-bold" },
+                            React.createElement(Icon, { n: "volumeX", s: 18 }),
+                            " ",
+                            tr('Silence Remover')),
+                        React.createElement("button", { onClick: removeSilence, disabled: scan.busy, className: `${btn} w-full` }, scan.busy ? tr('Scanning audio...') : tr('Scan and cut')),
+                        scan.busy && React.createElement("div", { className: "shimmer h-2 rounded-full" }),
+                        scan.msg && React.createElement("p", { className: "text-sm text-accent" }, scan.msg),
+                        scan.demo && React.createElement("p", { className: "text-xs text-gray-400" }, tr('Demo mode: no audio loaded, results are simulated.'))),
+                    React.createElement(Card, { className: "space-y-3" },
+                        React.createElement("h3", { className: "flex items-center gap-2 font-bold" },
+                            React.createElement(Icon, { n: "image", s: 18 }),
+                            " ",
+                            tr('Smart B-Roll Suggester')),
+                        React.createElement("input", { value: idea, onChange: (e) => setIdea(e.target.value), onKeyDown: (e) => e.key === 'Enter' && suggest(), placeholder: tr('Describe your scene, e.g. rainy city at night'), className: inp }),
+                        React.createElement("button", { onClick: suggest, disabled: ideaBusy, className: `${btn} w-full` }, ideaBusy ? tr('Working...') : tr('Suggest')),
+                        ideas.map((l, i) => React.createElement("div", { key: i, className: "flex items-start justify-between gap-2 rounded-xl bg-ink/60 p-3 text-sm" },
+                            React.createElement("span", null, l),
+                            React.createElement("button", { onClick: () => addBroll(l), title: tr('Add to B-Roll track'), "aria-label": tr('Add to B-Roll track'), className: "shrink-0 text-accent" },
+                                React.createElement(Icon, { n: "plus" }))))),
+                    React.createElement(Card, { className: "space-y-3" },
+                        React.createElement("h3", { className: "flex items-center gap-2 font-bold" },
+                            React.createElement(Icon, { n: "activity", s: 18 }),
+                            " ",
+                            tr('Auto Beat Sync')),
+                        React.createElement("button", { onClick: analyzeBeats, disabled: bb, className: `${btn} w-full` }, bb ? tr('Scanning audio...') : tr('Analyze beats')),
+                        beats && React.createElement(React.Fragment, null,
+                            React.createElement("p", { className: "text-2xl font-extrabold text-accent" },
+                                beats.bpm,
+                                " ",
+                                React.createElement("span", { className: "text-sm text-gray-400" }, "BPM")),
+                            React.createElement("div", { className: "flex flex-wrap gap-2" }, [['Every beat', 1], ['Every 2 beats', 2], ['Every bar (4 beats)', 4]].map(([l, n]) => React.createElement("button", { key: l, onClick: () => cutBeats(n), className: ghost }, tr(l)))),
+                            beats.sim && React.createElement("p", { className: "text-xs text-gray-400" }, tr('Demo mode: no audio loaded, results are simulated.')))))) : (React.createElement(Card, { className: "space-y-4" },
+                    React.createElement("p", { className: "text-sm text-gray-300" }, tr('Preset')),
+                    React.createElement("div", { className: "flex flex-wrap gap-2" }, FX_NAMES.map(([key, l]) => React.createElement("button", { key: key, onClick: () => setFx({ ...fx, preset: key }), "aria-pressed": fx.preset === key, className: `${ghost} ${fx.preset === key ? '!border-accent !text-accent' : ''}` }, tr(l)))),
+                    [['k', 'Intensity', 0, 100], ['mb', 'Motion blur', 0, 12], ['glitch', 'Glitch', 0, 100]].map(([key, l, min, max]) => (React.createElement("label", { key: key, className: "block text-sm text-gray-300" },
+                        tr(l),
+                        ": ",
+                        fx[key],
+                        React.createElement("input", { type: "range", min: min, max: max, value: fx[key], onChange: (e) => setFx({ ...fx, [key]: +e.target.value }) })))))))),
+        ex && (React.createElement("div", { className: "fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/70 p-5", role: "dialog", "aria-modal": "true" },
+            React.createElement("div", { className: "glass w-full max-w-md space-y-4 rounded-2xl p-6" },
+                React.createElement("h2", { className: "text-xl font-extrabold" }, tr('Export settings')),
+                [['res', 'Resolution', ['720p', '1080p', '4K']], ['fps', 'Frame rate', [24, 30, 60]], ['fmt', 'Format', ['MP4', 'MOV']]].map(([key, l, opts]) => (React.createElement("div", { key: key },
+                    React.createElement("p", { className: "mb-1 text-sm text-gray-300" }, tr(l)),
+                    React.createElement("div", { className: "flex gap-2" }, opts.map((o) => React.createElement("button", { key: o, disabled: ex.run, onClick: () => setEx({ ...ex, [key]: o }), "aria-pressed": ex[key] === o, className: `${ghost} flex-1 ${ex[key] === o ? '!border-accent !text-accent' : ''}` }, o)))))),
+                React.createElement("p", { className: "text-sm text-gray-300" },
+                    tr('Estimated size'),
+                    ": ",
+                    React.createElement("b", { className: "text-white" },
+                        mb.toFixed(1),
+                        " MB")),
+                (ex.run || ex.done) && (React.createElement("div", { className: "space-y-2", role: "status", "aria-live": "polite" },
+                    React.createElement("div", { className: "h-3 overflow-hidden rounded-full bg-white/10" },
+                        React.createElement("div", { className: "h-full rounded-full bg-accent transition-all", style: { width: `${ex.prog}%`, boxShadow: '0 0 12px #FACC15' } })),
+                    React.createElement("p", { className: "text-sm font-semibold text-accent" }, ex.done ? tr('Render complete (simulation)') : `${tr(stage)}... ${Math.round(ex.prog)}%`))),
+                ex.done && React.createElement("p", { className: "text-xs text-gray-400" }, tr('This is a render simulator: no video file is created yet. You can download the project file.')),
+                React.createElement("div", { className: "flex gap-2" },
+                    ex.done ? React.createElement("button", { onClick: dlProject, className: `${btn} flex-1` },
+                        React.createElement(Icon, { n: "download", s: 16 }),
+                        " ",
+                        tr('Download project file')) : React.createElement("button", { onClick: startRender, disabled: ex.run, className: `${btn} flex-1` }, tr('Start render')),
+                    React.createElement("button", { onClick: () => { clearInterval(timer.current); setEx(null); }, className: ghost }, tr('Close'))))))));
+}
+/* ---------- ACCOUNTS + SAVED PROJECTS (Supabase) ---------- */
+const SUPABASE_URL = 'https://smbajmemivfwkrphajmy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_qNtdhdTxdDWGhbfoAunUAw__fj2_CfW'; // publishable key: safe in the browser, Row Level Security protects the data
+let SB = null;
+async function getSB() {
+    if (SB)
+        return SB;
+    const mod = await dynImport('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    SB = mod.createClient(SUPABASE_URL, SUPABASE_KEY);
+    return SB;
+}
+const AuthCtx = React.createContext({ user: null, save: () => { } });
+const CATS = [['all', 'All'], ['script', 'Saved Scripts'], ['hooks', 'Hooks'], ['thumb', 'Thumbnails'], ['studio', 'Studio Projects'], ['other', 'Other AI']];
+const catOf = (k) => (['script', 'hooks', 'thumb', 'studio'].includes(k) ? k : 'other');
+const projectText = (r) => (r.kind === 'thumb' ? r.data.text || '' : r.kind === 'studio' ? JSON.stringify(r.data) : (r.data.output || []).join('\n\n'));
+const kindName = (k) => { const t = TOOLS.find((x) => x.id === k); return t ? tr(t.name) : k; };
+function SaveBtn({ kind, title, data, disabled }) {
+    const { save } = useContext(AuthCtx);
+    return (React.createElement("button", { disabled: disabled, onClick: () => save({ kind, title: String(typeof title === 'function' ? title() : title).trim() || kindName(kind), data: typeof data === 'function' ? data() : data }), className: `${ghost} disabled:opacity-40` },
+        React.createElement(Icon, { n: "save", s: 16 }),
+        " ",
+        tr('Save to Projects')));
+}
+function AuthModal({ mode, setMode, onClose }) {
+    const [email, setEmail] = useState('');
+    const [pw, setPw] = useState('');
+    const [busy, setBusy] = useState(false);
+    const [msg, setMsg] = useState('');
+    const [err, setErr] = useState('');
+    const okEmail = () => /\S+@\S+\.\S+/.test(email);
+    const submit = async () => {
+        setErr('');
+        setMsg('');
+        if (!okEmail())
+            return setErr(tr('Enter a valid email.'));
+        if (pw.length < 6)
+            return setErr(tr('Password must be at least 6 characters.'));
+        setBusy(true);
+        try {
+            const sb = await getSB();
+            if (mode === 'login') {
+                const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+                if (error)
+                    throw error;
+                onClose();
+            }
+            else {
+                const { data, error } = await sb.auth.signUp({ email, password: pw, options: { emailRedirectTo: window.location.origin } });
+                if (error)
+                    throw error;
+                if (data.session)
+                    onClose();
+                else
+                    setMsg(tr('Check your email to confirm your account.'));
+            }
+        }
+        catch (e) {
+            setErr(e.message || tr('Something went wrong. Try again.'));
+        }
+        setBusy(false);
+    };
+    const google = async () => {
+        try {
+            const sb = await getSB();
+            const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+            if (error)
+                throw error;
+        }
+        catch (e) {
+            setErr(e.message || tr('Something went wrong. Try again.'));
+        }
+    };
+    const forgot = async () => {
+        setErr('');
+        setMsg('');
+        if (!okEmail())
+            return setErr(tr('Enter a valid email.'));
+        try {
+            const sb = await getSB();
+            const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+            if (error)
+                throw error;
+            setMsg(tr('Password reset email sent.'));
+        }
+        catch (e) {
+            setErr(e.message);
+        }
+    };
+    return (React.createElement("div", { className: "fixed inset-0 z-[60] grid place-items-center overflow-y-auto bg-black/70 p-5", role: "dialog", "aria-modal": "true", "aria-label": "Account" },
+        React.createElement("div", { className: "glass w-full max-w-sm space-y-4 rounded-2xl p-6" },
+            React.createElement("div", { className: "flex items-center justify-between" },
+                React.createElement(Logo, { s: 36 }),
+                React.createElement("button", { onClick: onClose, "aria-label": tr('Close'), className: "text-gray-400 hover:text-white" },
+                    React.createElement(Icon, { n: "x" }))),
+            React.createElement("div", { className: "flex gap-2" }, [['login', 'Log In'], ['signup', 'Create Account']].map(([k, l]) => React.createElement("button", { key: k, onClick: () => { setMode(k); setErr(''); setMsg(''); }, "aria-pressed": mode === k, className: `${ghost} flex-1 ${mode === k ? '!border-accent !text-accent' : ''}` }, tr(l)))),
+            React.createElement("label", { className: "block text-sm text-gray-300" },
+                tr('Email'),
+                React.createElement("input", { type: "email", autoComplete: "email", value: email, onChange: (e) => setEmail(e.target.value), className: `${inp} mt-1`, dir: "ltr" })),
+            React.createElement("label", { className: "block text-sm text-gray-300" },
+                tr('Password'),
+                React.createElement("input", { type: "password", autoComplete: mode === 'login' ? 'current-password' : 'new-password', value: pw, onChange: (e) => setPw(e.target.value), onKeyDown: (e) => e.key === 'Enter' && submit(), className: `${inp} mt-1`, dir: "ltr" })),
+            err && React.createElement("p", { className: "text-sm text-red-300" }, err),
+            msg && React.createElement("p", { className: "text-sm text-accent" }, msg),
+            React.createElement("button", { onClick: submit, disabled: busy, className: `${btn} w-full` }, busy ? tr('Working...') : tr(mode === 'login' ? 'Log In' : 'Create Account')),
+            mode === 'login' && React.createElement("button", { onClick: forgot, className: "block w-full text-center text-sm text-gray-400 hover:text-white" }, tr('Forgot password?')),
+            React.createElement("div", { className: "flex items-center gap-3 text-xs text-gray-500" },
+                React.createElement("span", { className: "h-px flex-1 bg-white/10" }),
+                tr('or'),
+                React.createElement("span", { className: "h-px flex-1 bg-white/10" })),
+            React.createElement("button", { onClick: google, className: `${ghost} w-full !py-3` },
+                React.createElement("span", { className: "grid h-5 w-5 place-items-center rounded-full bg-white text-xs font-extrabold text-ink" }, "G"),
+                " ",
+                tr('Continue with Google')))));
+}
+function MyProjects({ user, onOpen, openAuth, flash }) {
+    const [rows, setRows] = useState(null);
+    const [err, setErr] = useState('');
+    const [cat, setCat] = useState('all');
+    const load = async () => {
+        try {
+            const sb = await getSB();
+            const { data, error } = await sb.from('projects').select('*').order('created_at', { ascending: false });
+            if (error)
+                throw error;
+            setRows(data);
+        }
+        catch (e) {
+            setErr(e.message || 'Error');
+            setRows([]);
+        }
+    };
+    useEffect(() => { if (user)
+        load(); }, [user && user.id]);
+    const del = async (r) => {
+        if (!window.confirm(tr('Delete this project?')))
+            return;
+        try {
+            const sb = await getSB();
+            const { error } = await sb.from('projects').delete().eq('id', r.id);
+            if (error)
+                throw error;
+            setRows((x) => x.filter((y) => y.id !== r.id));
+        }
+        catch (e) {
+            flash(e.message);
+        }
+    };
+    const copy = (r) => { try {
+        navigator.clipboard.writeText(projectText(r));
+        flash(tr('Copied'));
+    }
+    catch (e) { /* blocked */ } };
+    const shown = (rows || []).filter((r) => cat === 'all' || catOf(r.kind) === cat);
+    return (React.createElement("div", null,
+        React.createElement("h1", { className: "mb-5 text-3xl font-extrabold tracking-tight" }, tr('My Projects')),
+        !user ? (React.createElement(Card, { className: "space-y-4 text-center" },
+            React.createElement("p", { className: "text-gray-300" }, tr('Please sign in to see your projects.')),
+            React.createElement("button", { onClick: () => openAuth('login'), className: btn }, tr('Sign In')))) : (React.createElement(React.Fragment, null,
+            React.createElement("div", { className: "noscroll mb-5 flex gap-2.5 overflow-x-auto" }, CATS.map(([k, l]) => React.createElement("button", { key: k, onClick: () => setCat(k), "aria-pressed": cat === k, className: `whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold ${cat === k ? 'bg-accent text-ink neon' : 'glass text-gray-300'}` }, tr(l)))),
+            err && React.createElement("p", { className: "mb-4 text-sm text-red-300" }, err),
+            rows === null ? React.createElement("p", { className: "text-gray-400" }, tr('Loading...')) : shown.length === 0 ? (React.createElement("p", { className: "py-16 text-center text-gray-400" }, tr('No projects yet. Save your work from any tool and it will appear here.'))) : (React.createElement("div", { className: "grid gap-5 sm:grid-cols-2 lg:grid-cols-3" }, shown.map((r) => (React.createElement("article", { key: r.id, className: "glass-lite flex flex-col gap-3 rounded-2xl p-4" },
+                React.createElement("div", { className: "flex items-center justify-between gap-2" },
+                    React.createElement("span", { className: "rounded-lg bg-ink px-2.5 py-1 text-xs font-semibold text-accent" }, kindName(r.kind)),
+                    React.createElement("span", { className: "text-xs text-gray-400" }, new Date(r.created_at).toLocaleDateString(LANG === 'ar' ? 'ar-MA' : LANG))),
+                React.createElement("h3", { className: "line-clamp-2 font-bold" }, r.title),
+                r.kind === 'thumb' && r.data.preview ? React.createElement("img", { src: r.data.preview, alt: "", className: "w-full rounded-lg" })
+                    : r.kind === 'studio' ? React.createElement("p", { className: "text-sm text-gray-400" },
+                        (r.data.clips || []).length,
+                        " ",
+                        tr('clips'))
+                        : React.createElement("p", { className: "line-clamp-3 whitespace-pre-wrap text-sm text-gray-400" }, (r.data.output || []).join(' · ').slice(0, 160)),
+                React.createElement("div", { className: "mt-auto flex gap-2" },
+                    React.createElement("button", { onClick: () => onOpen(r), className: `${btn} flex-1 !px-3 !py-2 text-sm` },
+                        React.createElement(Icon, { n: "edit", s: 15 }),
+                        " ",
+                        tr('Open / Edit')),
+                    React.createElement("button", { onClick: () => copy(r), title: tr('Copy'), "aria-label": tr('Copy'), className: `${ghost} !px-3` },
+                        React.createElement(Icon, { n: "copy", s: 15 })),
+                    React.createElement("button", { onClick: () => del(r), title: tr('Delete'), "aria-label": tr('Delete'), className: `${ghost} !px-3` },
+                        React.createElement(Icon, { n: "trash", s: 15 }))))))))))));
+}
+function Account({ user, openAuth }) {
+    const [pw, setPw] = useState('');
+    const [msg, setMsg] = useState('');
+    const [err, setErr] = useState('');
+    const update = async () => {
+        setErr('');
+        setMsg('');
+        if (pw.length < 6)
+            return setErr(tr('Password must be at least 6 characters.'));
+        try {
+            const sb = await getSB();
+            const { error } = await sb.auth.updateUser({ password: pw });
+            if (error)
+                throw error;
+            setPw('');
+            setMsg(tr('Password updated.'));
+        }
+        catch (e) {
+            setErr(e.message);
+        }
+    };
+    if (!user)
+        return React.createElement(Card, { className: "space-y-4 text-center" },
+            React.createElement("p", { className: "text-gray-300" }, tr('Please sign in to see your projects.')),
+            React.createElement("button", { onClick: () => openAuth('login'), className: btn }, tr('Sign In')));
+    return (React.createElement("div", { className: "max-w-lg space-y-5" },
+        React.createElement("h1", { className: "text-3xl font-extrabold tracking-tight" }, tr('Account Settings')),
+        React.createElement(Card, { className: "space-y-3 text-sm" },
+            React.createElement("p", { className: "text-gray-400" }, tr('Signed in as')),
+            React.createElement("p", { className: "break-all text-lg font-bold", dir: "ltr" }, user.email),
+            React.createElement("p", { className: "text-gray-400" },
+                tr('Sign-in method'),
+                ": ",
+                React.createElement("b", { className: "text-white" }, (user.app_metadata && user.app_metadata.provider) || 'email')),
+            React.createElement("p", { className: "text-gray-400" },
+                tr('Member since'),
+                ": ",
+                React.createElement("b", { className: "text-white" }, new Date(user.created_at).toLocaleDateString(LANG === 'ar' ? 'ar-MA' : LANG)))),
+        React.createElement(Card, { className: "space-y-3" },
+            React.createElement("label", { className: "block text-sm text-gray-300" },
+                tr('New password'),
+                React.createElement("input", { type: "password", autoComplete: "new-password", value: pw, onChange: (e) => setPw(e.target.value), className: `${inp} mt-1`, dir: "ltr" })),
+            err && React.createElement("p", { className: "text-sm text-red-300" }, err),
+            msg && React.createElement("p", { className: "text-sm text-accent" }, msg),
+            React.createElement("button", { onClick: update, className: `${btn} w-full` }, tr('Update password')))));
+}
 const LANG_NAME = { en: 'English', fr: 'French', ar: 'Arabic' };
 const AI_TOOLS = {
     hooks: { mode: 'list', p: (i) => `Write 6 scroll-stopping opening hooks (for the first 3 seconds) for a short video about: ${i}.` },
@@ -834,6 +1608,7 @@ const AI_TOOLS = {
     script: { mode: 'text', p: (i) => `Write a short-form video script (about 45 seconds) about: ${i}. Structure: Hook, 3 key points, Call to action. Add a rough timing for each part. Keep it under 130 words in total.` },
     captions: { mode: 'text', p: (i) => `Write ready-to-post captions for a video about: ${i}. Give 3 versions: TikTok (short), Instagram Reels, YouTube Shorts. End each with 5 relevant hashtags. Keep each caption under 30 words.` },
     ideas: { mode: 'list', p: (i) => `Give 8 original video ideas for a creator in this niche: ${i}. One line each, with a short angle.` },
+    broll: { mode: 'list', p: (i) => `Suggest 6 cinematic B-roll shot ideas for a video about: ${i}. One per line: the shot description, then 3 stock-footage search keywords in parentheses.` },
     shots: { mode: 'list', p: (i) => `Plan a shot list for a video about: ${i}. Give 6 shots, one per line, each with shot type and duration.` },
 };
 async function runAI(id, input) {
@@ -850,9 +1625,9 @@ async function runAI(id, input) {
     const clean = data.reply.replace(/\*\*/g, '');
     return t.mode === 'text' ? [clean.trim()] : clean.split('\n').map((x) => x.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').trim()).filter(Boolean);
 }
-function AiTool({ id, ph }) {
-    const [input, setInput] = useState('');
-    const [out, setOut] = useState([]);
+function AiTool({ id, ph, initial }) {
+    const [input, setInput] = useState(initial ? initial.input : '');
+    const [out, setOut] = useState(initial ? initial.output : []);
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState('');
     const [done, setDone] = useState(-1);
@@ -891,24 +1666,98 @@ function AiTool({ id, ph }) {
         React.createElement("ul", { className: `mt-5 space-y-2 ${busy ? 'hidden' : ''}` }, out.map((l, i) => (React.createElement("li", { key: i, className: "flex items-start justify-between gap-3 rounded-xl glass px-4 py-3" },
             React.createElement("span", { className: AI_TOOLS[id].mode === 'text' ? 'whitespace-pre-wrap leading-7' : '' }, l),
             React.createElement("button", { onClick: () => copy(l, i), title: "Copy", className: "text-gray-400 hover:text-white" },
-                React.createElement(Icon, { n: done === i ? 'check' : 'copy' }))))))));
+                React.createElement(Icon, { n: done === i ? 'check' : 'copy' })))))),
+        out.length > 0 && !busy && React.createElement("div", { className: "mt-4" },
+            React.createElement(SaveBtn, { kind: id, title: `${kindName(id)}: ${input}`, data: { input, output: out } }))));
 }
 /* ---------- TOOL REGISTRY ---------- */
 const TOOLS = [
+    { id: 'studio', kind: 'edit', name: 'AI Studio & Timeline Pro', icon: 'video', hue: 255, desc: 'A multi-track editor with AI auto-reframe, silence remover, beat sync and cinematic FX.', C: StudioPro },
     { id: 'grade', kind: 'edit', name: 'Color Grader', icon: 'sliders', hue: 270, desc: 'Preview looks on your own clip or image and save a graded frame.', C: ColorGrader },
     { id: 'aspect', kind: 'edit', name: 'Aspect Ratio & Safe Zones', icon: 'maximize', hue: 200, desc: 'Export sizes for every platform, with safe-zone guides.', C: AspectTool },
     { id: 'thumb', kind: 'edit', name: 'Thumbnail Maker', icon: 'image', hue: 20, desc: 'Make a 1280×720 thumbnail with big text over any image.', C: ThumbnailMaker },
     { id: 'bgremove', kind: 'ai', name: 'Background Remover', icon: 'scissors', hue: 175, desc: 'Remove the background from any photo with AI. It runs on your device.', C: BgRemover },
-    { id: 'script', kind: 'ai', name: 'Script Writer', icon: 'fileText', hue: 160, desc: 'A full short-video script with hook, key points and call to action.', C: () => React.createElement(AiTool, { id: "script", ph: "What is your video about?" }) },
-    { id: 'hooks', kind: 'ai', name: 'Hook Writer', icon: 'zap', hue: 45, desc: 'Opening lines that stop the scroll in the first 3 seconds.', C: () => React.createElement(AiTool, { id: "hooks", ph: "What is your video about?" }) },
-    { id: 'titles', kind: 'ai', name: 'Title Generator', icon: 'type', hue: 230, desc: 'Clear, clickable titles for your videos.', C: () => React.createElement(AiTool, { id: "titles", ph: "Video topic" }) },
-    { id: 'captions', kind: 'ai', name: 'Caption & Hashtags', icon: 'msg', hue: 300, desc: 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.', C: () => React.createElement(AiTool, { id: "captions", ph: "Video topic" }) },
-    { id: 'ideas', kind: 'ai', name: 'Video Idea Generator', icon: 'bulb', hue: 90, desc: 'Fresh video ideas for your niche, each with an angle.', C: () => React.createElement(AiTool, { id: "ideas", ph: "Your niche or channel type" }) },
-    { id: 'shots', kind: 'ai', name: 'Shot List Planner', icon: 'list', hue: 345, desc: 'Turn an idea into a shot-by-shot plan before you film.', C: () => React.createElement(AiTool, { id: "shots", ph: "Describe your video idea" }) },
+    { id: 'script', kind: 'ai', name: 'Script Writer', icon: 'fileText', hue: 160, desc: 'A full short-video script with hook, key points and call to action.', C: (p) => React.createElement(AiTool, { id: "script", ph: "What is your video about?", initial: p.initial }) },
+    { id: 'hooks', kind: 'ai', name: 'Hook Writer', icon: 'zap', hue: 45, desc: 'Opening lines that stop the scroll in the first 3 seconds.', C: (p) => React.createElement(AiTool, { id: "hooks", ph: "What is your video about?", initial: p.initial }) },
+    { id: 'titles', kind: 'ai', name: 'Title Generator', icon: 'type', hue: 230, desc: 'Clear, clickable titles for your videos.', C: (p) => React.createElement(AiTool, { id: "titles", ph: "Video topic", initial: p.initial }) },
+    { id: 'captions', kind: 'ai', name: 'Caption & Hashtags', icon: 'msg', hue: 300, desc: 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.', C: (p) => React.createElement(AiTool, { id: "captions", ph: "Video topic", initial: p.initial }) },
+    { id: 'ideas', kind: 'ai', name: 'Video Idea Generator', icon: 'bulb', hue: 90, desc: 'Fresh video ideas for your niche, each with an angle.', C: (p) => React.createElement(AiTool, { id: "ideas", ph: "Your niche or channel type", initial: p.initial }) },
+    { id: 'shots', kind: 'ai', name: 'Shot List Planner', icon: 'list', hue: 345, desc: 'Turn an idea into a shot-by-shot plan before you film.', C: (p) => React.createElement(AiTool, { id: "shots", ph: "Describe your video idea", initial: p.initial }) },
 ];
 /* ---------- APP ---------- */
 function App() {
     const [active, setActive] = useState(null);
+    const [user, setUser] = useState(null);
+    const [authOpen, setAuthOpen] = useState(null);
+    const [menu, setMenu] = useState(false);
+    const [toast, setToast] = useState('');
+    const [proj, setProj] = useState(null);
+    const pending = useRef(null), authInit = useRef(false);
+    const flash = (m) => { setToast(m); setTimeout(() => setToast(''), 2600); };
+    const doSave = async (p) => {
+        try {
+            const sb = await getSB();
+            const { error } = await sb.from('projects').insert({ kind: p.kind, title: p.title.slice(0, 120), data: p.data });
+            if (error)
+                throw error;
+            flash(tr('Saved to My Projects'));
+        }
+        catch (e) {
+            console.error(e);
+            flash(`${tr('Could not save')}: ${e.message || ''}`);
+        }
+    };
+    const initAuth = async () => {
+        if (authInit.current)
+            return;
+        authInit.current = true;
+        try {
+            const sb = await getSB();
+            const { data } = await sb.auth.getSession();
+            setUser(data.session ? data.session.user : null);
+            sb.auth.onAuthStateChange((ev, session) => {
+                setUser(session ? session.user : null);
+                if (ev === 'PASSWORD_RECOVERY')
+                    setActive('account');
+                if (ev === 'SIGNED_IN' && pending.current) {
+                    const p = pending.current;
+                    pending.current = null;
+                    setTimeout(() => doSave(p), 0);
+                }
+            });
+        }
+        catch (e) {
+            authInit.current = false;
+            console.error(e);
+        }
+    };
+    const openAuth = (m) => { initAuth(); setAuthOpen(m); };
+    const save = (p) => { if (!user) {
+        pending.current = p;
+        openAuth('login');
+        return;
+    } doSave(p); };
+    const logout = async () => { setMenu(false); try {
+        const sb = await getSB();
+        await sb.auth.signOut();
+    }
+    catch (e) { /* ignore */ } setUser(null); setActive(null); setProj(null); };
+    useEffect(() => {
+        let hint = /access_token|[?&]code=|type=recovery/.test(window.location.href);
+        try {
+            hint = hint || Object.keys(localStorage).some((k) => k.startsWith('sb-'));
+        }
+        catch (e) { /* storage blocked */ }
+        if (hint)
+            initAuth();
+    }, []);
+    useEffect(() => {
+        if (!menu)
+            return;
+        const h = () => setMenu(false);
+        const id = setTimeout(() => document.addEventListener('click', h), 0);
+        return () => { clearTimeout(id); document.removeEventListener('click', h); };
+    }, [menu]);
     const [lang, setLang] = useState(() => { try {
         return localStorage.getItem('clipmed_lang');
     }
@@ -928,8 +1777,10 @@ function App() {
         return TOOLS.filter((t) => (kind === 'all' || t.kind === kind) && (!s || (tr(t.name) + ' ' + tr(t.desc)).toLowerCase().includes(s)));
     }, [q, kind, lang]);
     const tool = TOOLS.find((t) => t.id === active);
-    const go = (id) => { setActive(id); window.scrollTo({ top: 0 }); };
-    return (React.createElement(React.Fragment, null,
+    const go = (id) => { setActive(id); setProj(null); window.scrollTo({ top: 0 }); };
+    const openProject = (r) => { if (!TOOLS.find((x) => x.id === r.kind))
+        return go(null); setProj(r); setActive(r.kind); window.scrollTo({ top: 0 }); };
+    return (React.createElement(AuthCtx.Provider, { value: { user, save } },
         !lang && React.createElement(LangPicker, { onPick: pickLang }),
         React.createElement("header", { className: "sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-ink/40 px-5 py-3 backdrop-blur-md" },
             React.createElement("button", { onClick: () => go(null), className: "flex items-center gap-3" },
@@ -938,12 +1789,31 @@ function App() {
                     "Clip",
                     React.createElement("span", { className: "text-accent" }, "Med"))),
             React.createElement("div", { className: "flex items-center gap-2" },
-                tool && React.createElement("button", { onClick: () => go(null), className: ghost },
+                active && React.createElement("button", { onClick: () => go(null), className: ghost },
                     React.createElement(Icon, { n: "back", s: 16, c: "rtl:rotate-180" }),
-                    " ",
-                    tr('All tools')),
-                React.createElement("select", { value: lang || 'en', onChange: (e) => pickLang(e.target.value), "aria-label": "Language", className: "rounded-xl glass px-3 py-2.5 text-sm font-semibold text-white" }, Object.entries(NAMES).map(([k, n]) => React.createElement("option", { key: k, value: k }, n))))),
-        React.createElement("main", { className: "mx-auto max-w-6xl px-5 pb-16" }, tool ? (React.createElement("section", { className: "pt-8" },
+                    React.createElement("span", { className: "hidden sm:inline" }, tr('All tools'))),
+                React.createElement("select", { value: lang || 'en', onChange: (e) => pickLang(e.target.value), "aria-label": "Language", className: "rounded-xl glass px-3 py-2.5 text-sm font-semibold text-white" }, Object.entries(NAMES).map(([k, n]) => React.createElement("option", { key: k, value: k }, n))),
+                user ? (React.createElement("div", { className: "relative" },
+                    React.createElement("button", { onClick: () => setMenu((m) => !m), "aria-label": "Profile", "aria-expanded": menu, className: "grid h-10 w-10 place-items-center rounded-full bg-accent font-extrabold text-ink neon" }, (user.email || '?')[0].toUpperCase()),
+                    menu && (React.createElement("div", { className: "glass absolute end-0 z-50 mt-2 w-56 overflow-hidden rounded-xl p-1 text-sm" },
+                        React.createElement("p", { className: "truncate px-3 py-2 text-xs text-gray-400", dir: "ltr" }, user.email),
+                        React.createElement("button", { onClick: () => go('projects'), className: "flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-start hover:bg-white/10" },
+                            React.createElement(Icon, { n: "folder", s: 16 }),
+                            " ",
+                            tr('My Projects')),
+                        React.createElement("button", { onClick: () => go('account'), className: "flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-start hover:bg-white/10" },
+                            React.createElement(Icon, { n: "sliders", s: 16 }),
+                            " ",
+                            tr('Account Settings')),
+                        React.createElement("button", { onClick: logout, className: "flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-start text-red-300 hover:bg-white/10" },
+                            React.createElement(Icon, { n: "logout", s: 16 }),
+                            " ",
+                            tr('Log Out')))))) : (React.createElement("button", { onClick: () => openAuth('login'), className: `${ghost} !border-accent/60 !text-accent` },
+                    React.createElement(Icon, { n: "user", s: 16 }),
+                    React.createElement("span", { className: "hidden sm:inline" }, tr('Sign In')))))),
+        React.createElement("main", { className: "mx-auto max-w-6xl px-5 pb-16" }, active === 'projects' ? (React.createElement("section", { className: "pt-8" },
+            React.createElement(MyProjects, { user: user, onOpen: openProject, openAuth: openAuth, flash: flash }))) : active === 'account' ? (React.createElement("section", { className: "pt-8" },
+            React.createElement(Account, { user: user, openAuth: openAuth }))) : tool ? (React.createElement("section", { className: "pt-8" },
             React.createElement("div", { className: "glass mb-6 h-36 overflow-hidden rounded-2xl" },
                 React.createElement(Cover, { id: tool.id, hue: tool.hue })),
             React.createElement("div", { className: "mb-6 flex items-start gap-4" },
@@ -952,7 +1822,7 @@ function App() {
                 React.createElement("div", null,
                     React.createElement("h1", { className: "text-3xl font-extrabold tracking-tight" }, tr(tool.name)),
                     React.createElement("p", { className: "mt-1 text-gray-400" }, tr(tool.desc)))),
-            React.createElement(tool.C, null))) : (React.createElement(React.Fragment, null,
+            React.createElement(tool.C, { key: proj ? proj.id : 'fresh', initial: proj ? proj.data : null }))) : (React.createElement(React.Fragment, null,
             React.createElement("section", { className: "grid items-center gap-8 pt-10 md:grid-cols-2" },
                 React.createElement("div", null,
                     React.createElement("div", { className: "mb-4 flex flex-wrap gap-2" },
@@ -984,7 +1854,9 @@ function App() {
                 React.createElement("div", { className: "p-5" },
                     React.createElement("h3", { className: "text-lg font-bold group-hover:text-accent" }, tr(t.name)),
                     React.createElement("p", { className: "mt-1 text-sm text-gray-400" }, tr(t.desc)),
-                    React.createElement("span", { className: "mt-4 block rounded-xl bg-accent/10 py-3 text-center text-sm font-semibold text-accent group-hover:bg-accent group-hover:text-ink" }, tr('Open tool')))))))))))));
+                    React.createElement("span", { className: "mt-4 block rounded-xl bg-accent/10 py-3 text-center text-sm font-semibold text-accent group-hover:bg-accent group-hover:text-ink" }, tr('Open tool'))))))))))),
+        authOpen && React.createElement(AuthModal, { mode: authOpen, setMode: setAuthOpen, onClose: () => setAuthOpen(null) }),
+        toast && React.createElement("div", { className: "glass fixed bottom-5 left-1/2 z-[70] max-w-[90vw] -translate-x-1/2 rounded-xl px-4 py-3 text-sm font-semibold text-accent", role: "status" }, toast)));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
 
