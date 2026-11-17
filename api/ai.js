@@ -8,9 +8,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Prompt is required' });
   }
 
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'API key is missing in server environment variables' });
+  }
+
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    const apiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -20,10 +25,15 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await response.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ما قدرش الذكاء الاصطناعي يجاوب دابا.';
+    const data = await apiResponse.json();
+    
+    if (data.error) {
+      return res.status(500).json({ error: data.error.message || 'Gemini API Error' });
+    }
+
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ما كاين حتى جواب.';
     return res.status(200).json({ reply });
   } catch (error) {
-    return res.status(500).json({ error: 'وقع مشكل فالاتصال بالسيرفر' });
+    return res.status(500).json({ error: error.message || 'Server connection failed' });
   }
 }
