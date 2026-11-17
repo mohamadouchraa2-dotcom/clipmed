@@ -28,8 +28,7 @@
 const { useState, useMemo, useRef, useEffect } = React;
 
 /* ---------- CONFIG ---------- */
-// Optional: your own backend for real AI. POST {tool,input} -> {result: string[]}. Falls back to built-in templates.
-const AI_ENDPOINT = '';
+const AI_ENDPOINT = '/api/ai';
 
 /* ---------- ICONS (inline, no library) ---------- */
 const P = {
@@ -53,7 +52,7 @@ const Icon = ({ n, s = 18, c = '' }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c} aria-hidden="true">{P[n]}</svg>
 );
 
-/* ---------- LANGUAGES (en / fr / ar) ---------- */
+/* ---------- LANGUAGES ---------- */
 const NAMES = { en: 'English', fr: 'Français', ar: 'العربية' };
 let LANG = 'en';
 const tr = (k) => (I18N[LANG] && I18N[LANG][k]) || k;
@@ -139,7 +138,6 @@ function LangPicker({ onPick }) {
   );
 }
 
-/* ---------- GENERATED ARTWORK (no external images) ---------- */
 const Cover = ({ hue, kind, seed }) => {
   const id = 'g' + seed;
   return (
@@ -168,13 +166,11 @@ const HeroArt = () => (
   </svg>
 );
 
-/* ---------- SHARED UI ---------- */
 const inp = 'w-full rounded-xl border border-white/10 bg-panel px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-accent';
 const btn = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 font-bold text-ink hover:brightness-110 disabled:opacity-60';
 const ghost = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-panel px-4 py-2.5 text-sm font-semibold text-gray-300 hover:border-white/30';
 const Card = ({ children, className = '' }) => <div className={`rounded-2xl border border-white/10 bg-panel/70 p-5 ${className}`}>{children}</div>;
 
-/* ---------- EDITING TOOLS ---------- */
 const BASE = { b: 100, c: 100, s: 100, h: 0, sep: 0, blur: 0 };
 const LOOKS = {
   Original: {}, Cinematic: { b: 95, c: 120, s: 90, h: -6, sep: 12 }, Vivid: { b: 105, c: 115, s: 150 },
@@ -198,7 +194,7 @@ function ColorGrader() {
     const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
     const ctx = cv.getContext('2d');
     if ('filter' in ctx) { ctx.filter = filter; ctx.drawImage(el, 0, 0, w, h); }
-    else { // Safari fallback: brightness, contrast, saturation only
+    else {
       ctx.drawImage(el, 0, 0, w, h);
       const d = ctx.getImageData(0, 0, w, h), p = d.data, B = v.b / 100, C = v.c / 100, S = v.s / 100;
       for (let i = 0; i < p.length; i += 4) {
@@ -324,39 +320,31 @@ function TapBpm() {
   );
 }
 
-/* ---------- AI TOOLS ---------- */
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const slug = (t) => t.toLowerCase().replace(/\s+/g, '');
-const LOCAL = {
-  en: {
-    hooks: (t) => [`Nobody tells you this about ${t}...`, `I tried ${t} for 7 days. Here is what happened.`, `Stop doing ${t} like this.`, `3 seconds is all you need to get ${t} right.`, `${t}: the mistake I made so you don't have to.`],
-    titles: (t) => [`${t} — Full Guide`, `How I Edit ${t} Like a Pro`, `${t}: Before vs After`, `The Only ${t} Tutorial You Need`, `${t} in 60 Seconds`],
-    hashtags: (t) => [`#${slug(t)}`, '#videoediting', '#editor', '#shorts', '#reels', '#fyp', '#cinematic', '#transitions'],
-    shots: (t) => [`1. Hook close-up, 2s: "${t}"`, '2. Wide establishing shot, 3s', '3. Detail or B-roll insert, 2s', '4. Medium shot with on-screen text, 4s', `5. Payoff shot: ${pick(['zoom-in', 'whip transition', 'speed ramp'])}, 3s`, '6. Call to action and end card, 2s'],
-  },
-  fr: {
-    hooks: (t) => [`Personne ne vous dit ça sur ${t}...`, `J'ai testé ${t} pendant 7 jours. Voici ce qui s'est passé.`, `Arrêtez de faire ${t} comme ça.`, `3 secondes suffisent pour réussir ${t}.`, `${t} : l'erreur que j'ai faite pour que vous l'évitiez.`],
-    titles: (t) => [`${t} : le guide complet`, `Comment je monte ${t} comme un pro`, `${t} : avant / après`, `Le seul tuto sur ${t} qu'il vous faut`, `${t} en 60 secondes`],
-    hashtags: (t) => [`#${slug(t)}`, '#montagevideo', '#monteur', '#shorts', '#reels', '#pourtoi', '#cinematique', '#transitions'],
-    shots: (t) => [`1. Accroche en gros plan, 2 s : « ${t} »`, `2. Plan large d'ouverture, 3 s`, '3. Plan de détail ou B-roll, 2 s', `4. Plan moyen avec texte à l'écran, 4 s`, `5. Plan final : ${pick(['zoom avant', 'transition rapide', 'rampe de vitesse'])}, 3 s`, `6. Appel à l'action et écran de fin, 2 s`],
-  },
-  ar: {
-    hooks: (t) => [`لا أحد يخبرك بهذا عن ${t}...`, `جرّبت ${t} لمدة 7 أيام. هذا ما حدث.`, `توقف عن فعل ${t} بهذه الطريقة.`, `3 ثوانٍ تكفي لتنجح في ${t}.`, `${t}: الخطأ الذي ارتكبته حتى لا ترتكبه أنت.`],
-    titles: (t) => [`${t} — الدليل الكامل`, `كيف أقوم بمونتاج ${t} باحتراف`, `${t}: قبل وبعد`, `الشرح الوحيد الذي تحتاجه عن ${t}`, `${t} في 60 ثانية`],
-    hashtags: (t) => [`#${slug(t)}`, '#مونتاج', '#مونتير', '#شورتس', '#ريلز', '#فيديو', '#سينمائي', '#انتقالات'],
-    shots: (t) => [`1. لقطة افتتاحية قريبة، 2 ث: «${t}»`, '2. لقطة واسعة تأسيسية، 3 ث', '3. لقطة تفصيلية أو B-roll، 2 ث', '4. لقطة متوسطة مع نص على الشاشة، 4 ث', `5. لقطة الذروة: ${pick(['تقريب', 'انتقال سريع', 'تغيير سرعة'])}، 3 ث`, '6. دعوة لاتخاذ إجراء وشاشة النهاية، 2 ث'],
-  },
-};
 async function runAI(tool, input) {
-  if (AI_ENDPOINT) {
-    try {
-      const r = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool, input }) });
-      if (r.ok) { const d = await r.json(); return Array.isArray(d.result) ? d.result : String(d.result).split('\n').filter(Boolean); }
-    } catch (e) { /* fall back below */ }
+  try {
+    const r = await fetch(AI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: `Generate ${tool} for this topic/idea: ${input}. Provide a clean list of 5 or 6 items, one per line, without extra numbering or intro.` })
+    });
+    if (r.ok) {
+      const data = await r.json();
+      if (data.reply) {
+        return data.reply.split('\n').filter(Boolean).map(item => item.replace(/^[0-9#\-\*\.\s]+/, '').trim()).filter(Boolean);
+      }
+    }
+  } catch (e) {
+    console.error(e);
   }
-  await new Promise((r) => setTimeout(r, 350));
-  return LOCAL[LANG][tool](input);
+  return [
+    `Guide & Ideas for ${input}`,
+    `Top tips on ${input}`,
+    `How to master ${input} fast`,
+    `The ultimate breakdown of ${input}`,
+    `Everything you need to know about ${input}`
+  ];
 }
+
 function AiTool({ id, ph }) {
   const [input, setInput] = useState('');
   const [out, setOut] = useState([]);
@@ -389,7 +377,6 @@ function AiTool({ id, ph }) {
   );
 }
 
-/* ---------- TOOL REGISTRY ---------- */
 const TOOLS = [
   { id: 'grade', kind: 'edit', name: 'Color Grader', icon: 'sliders', hue: 270, desc: 'Preview looks on your own clip or image and save a graded frame.', C: ColorGrader },
   { id: 'aspect', kind: 'edit', name: 'Aspect Ratio & Safe Zones', icon: 'maximize', hue: 200, desc: 'Export sizes for every platform, with safe-zone guides.', C: AspectTool },
@@ -401,7 +388,6 @@ const TOOLS = [
   { id: 'shots', kind: 'ai', name: 'Shot List Planner', icon: 'list', hue: 300, desc: 'Turn an idea into a shot-by-shot plan before you film.', C: () => <AiTool id="shots" ph="Describe your video idea" /> },
 ];
 
-/* ---------- APP ---------- */
 function App() {
   const [active, setActive] = useState(null);
   const [lang, setLang] = useState(() => { try { return localStorage.getItem('clipmed_lang'); } catch (e) { return null; } });
