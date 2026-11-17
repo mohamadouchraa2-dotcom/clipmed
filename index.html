@@ -389,9 +389,7 @@ async function runAI(id, input) {
       }
     }
   } catch (e) { console.error(e); }
-  return t.mode === 'text'
-    ? [`${input}\n\nThe AI is not available right now. Please try again in a moment.`]
-    : [`Guide & Ideas for ${input}`, `Top tips on ${input}`, `How to master ${input} fast`, `The ultimate breakdown of ${input}`, `Everything you need to know about ${input}`];
+  throw new Error('AI unavailable');
 }
 
 function AiTool({ id, ph }) {
