@@ -8,10 +8,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Prompt is required' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'API key is missing' });
-  }
+  const apiKey = "AQ.Ab8RN6JMfpoOhcwyxbsPi5cQKn7CGBqum4ezFRVh8_lSgm3Bxg";
 
   try {
     const apiResponse = await fetch(
