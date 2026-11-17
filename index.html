@@ -1,132 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClipMed — Video Editing Vault</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        ink: '#12142F',
-                        panel: '#1B1E47',
-                        accent: '#FACC15'
-                    }
-                }
-            }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Bricolage Grotesque', sans-serif; background-color: #0b0d1e; color: #ffffff; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0d1e">
+<title>ClipMed — Tools for video editors</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  tailwind.config = { theme: { extend: { colors: { ink: '#12142F', panel: '#1B1E47', accent: '#FACC15' } } } }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Bricolage Grotesque', system-ui, sans-serif; background: #0b0d1e; color: #fff; -webkit-font-smoothing: antialiased; }
+  :focus-visible { outline: 2px solid #FACC15; outline-offset: 2px; }
+  input[type=range] { accent-color: #FACC15; width: 100%; }
+  .noscroll::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
 </head>
-<body class="min-h-screen pb-12">
-    <!-- Header -->
-    <header class="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-panel/50 backdrop-blur-md sticky top-0 z-50">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20">
-                <svg class="w-6 h-6 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+<body class="min-h-screen">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo, useRef } = React;
+
+/* ---------- CONFIG ---------- */
+// Optional: your own backend for real AI. POST {tool,input} -> {result: string[]}. Falls back to built-in templates.
+const AI_ENDPOINT = '';
+
+/* ---------- ICONS (inline, no library) ---------- */
+const P = {
+  search: <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
+  back: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
+  video: <><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></>,
+  sliders: <><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></>,
+  maximize: <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>,
+  clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+  music: <><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></>,
+  zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>,
+  type: <><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></>,
+  hash: <><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></>,
+  list: <><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></>,
+  upload: <><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></>,
+  camera: <><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></>,
+  copy: <><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>,
+  check: <polyline points="20 6 9 17 4 12"/>,
+};
+const Icon = ({ n, s = 18, c = '' }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c} aria-hidden="true">{P[n]}</svg>
+);
+
+/* ---------- GENERATED ARTWORK (no external images) ---------- */
+const Cover = ({ hue, kind, seed }) => {
+  const id = 'g' + seed;
+  return (
+    <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
+      <defs><linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor={`hsl(${hue} 65% 24%)`} /><stop offset="1" stopColor={`hsl(${hue + 55} 70% 11%)`} />
+      </linearGradient></defs>
+      <rect width="200" height="100" fill={`url(#${id})`} />
+      {kind === 'edit'
+        ? [0, 1, 2, 3].map((i) => <rect key={i} x={8 + ((seed * 37 + i * 53) % 70)} y={14 + i * 20} width={40 + ((seed * 17 + i * 31) % 70)} height="12" rx="4" fill={`hsl(${hue + i * 22} 90% 62%)`} opacity=".85" />)
+        : Array.from({ length: 34 }, (_, i) => { const h = 8 + Math.abs(Math.sin(i * 0.55 + seed)) * 46; return <rect key={i} x={10 + i * 5.5} y={50 - h / 2} width="3" height={h} rx="1.5" fill={`hsl(${hue + i * 3} 90% 65%)`} opacity=".85" />; })}
+      {kind === 'edit' && <line x1={110 + seed * 6} y1="4" x2={110 + seed * 6} y2="96" stroke="#FACC15" strokeWidth="1.5" />}
+    </svg>
+  );
+};
+
+const HeroArt = () => (
+  <svg viewBox="0 0 400 220" className="w-full rounded-3xl border border-white/10 bg-panel" aria-hidden="true">
+    <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#2a2370" /><stop offset="1" stopColor="#0f1233" /></linearGradient></defs>
+    <rect width="400" height="220" fill="url(#hg)" />
+    {[...Array(40)].map((_, i) => <line key={i} x1={10 + i * 10} y1="14" x2={10 + i * 10} y2={i % 5 === 0 ? 28 : 21} stroke="#4a4fa0" />)}
+    <rect x="20" y="44" width="150" height="26" rx="7" fill="hsl(48 96% 53%)" /><rect x="180" y="44" width="110" height="26" rx="7" fill="hsl(190 80% 55%)" />
+    <rect x="60" y="80" width="130" height="26" rx="7" fill="hsl(280 70% 65%)" /><rect x="200" y="80" width="150" height="26" rx="7" fill="hsl(340 80% 62%)" />
+    {Array.from({ length: 52 }, (_, i) => { const h = 6 + Math.abs(Math.sin(i * 0.6)) * 30; return <rect key={i} x={20 + i * 6.8} y={158 - h / 2} width="3.5" height={h} rx="1.7" fill="#3DDBD9" opacity=".8" />; })}
+    <line x1="215" y1="30" x2="215" y2="200" stroke="#FACC15" strokeWidth="2" /><polygon points="208,26 222,26 215,38" fill="#FACC15" />
+  </svg>
+);
+
+/* ---------- SHARED UI ---------- */
+const inp = 'w-full rounded-xl border border-white/10 bg-panel px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-accent';
+const btn = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 font-bold text-ink hover:brightness-110 disabled:opacity-60';
+const ghost = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-panel px-4 py-2.5 text-sm font-semibold text-gray-300 hover:border-white/30';
+const Card = ({ children, className = '' }) => <div className={`rounded-2xl border border-white/10 bg-panel/70 p-5 ${className}`}>{children}</div>;
+
+/* ---------- EDITING TOOLS ---------- */
+const BASE = { b: 100, c: 100, s: 100, h: 0, sep: 0, blur: 0 };
+const LOOKS = {
+  Original: {}, Cinematic: { b: 95, c: 120, s: 90, h: -6, sep: 12 }, Vivid: { b: 105, c: 115, s: 150 },
+  Moody: { b: 85, c: 125, s: 80, h: 12 }, Vintage: { b: 105, c: 90, s: 80, sep: 35, h: -10 }, 'B&W': { c: 120, s: 0 },
+};
+const SLIDERS = [['b', 'Brightness', 50, 150], ['c', 'Contrast', 50, 160], ['s', 'Saturation', 0, 200], ['h', 'Hue', -180, 180], ['sep', 'Sepia', 0, 100], ['blur', 'Blur', 0, 8]];
+
+function ColorGrader() {
+  const [file, setFile] = useState(null);
+  const [v, setV] = useState(BASE);
+  const ref = useRef(null);
+  const filter = `brightness(${v.b}%) contrast(${v.c}%) saturate(${v.s}%) hue-rotate(${v.h}deg) sepia(${v.sep}%) blur(${v.blur}px)`;
+  const onFile = (e) => {
+    const f = e.target.files[0];
+    if (f) setFile({ url: URL.createObjectURL(f), video: f.type.startsWith('video') });
+  };
+  const capture = () => {
+    const el = ref.current; if (!el) return;
+    const w = el.videoWidth || el.naturalWidth, h = el.videoHeight || el.naturalHeight;
+    if (!w) return;
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d');
+    if ('filter' in ctx) { ctx.filter = filter; ctx.drawImage(el, 0, 0, w, h); }
+    else { // Safari fallback: brightness, contrast, saturation only
+      ctx.drawImage(el, 0, 0, w, h);
+      const d = ctx.getImageData(0, 0, w, h), p = d.data, B = v.b / 100, C = v.c / 100, S = v.s / 100;
+      for (let i = 0; i < p.length; i += 4) {
+        let r = (p[i] * B - 128) * C + 128, g = (p[i + 1] * B - 128) * C + 128, b = (p[i + 2] * B - 128) * C + 128;
+        const l = 0.299 * r + 0.587 * g + 0.114 * b;
+        p[i] = l + (r - l) * S; p[i + 1] = l + (g - l) * S; p[i + 2] = l + (b - l) * S;
+      }
+      ctx.putImageData(d, 0, 0);
+    }
+    const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = 'clipmed-frame.png'; a.click();
+  };
+  return (
+    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <Card className="grid min-h-[260px] place-items-center overflow-hidden">
+        {!file ? (
+          <label className={`${btn} cursor-pointer`}><Icon n="upload" /> Choose a video or image
+            <input type="file" accept="video/*,image/*" onChange={onFile} className="sr-only" /></label>
+        ) : file.video
+          ? <video ref={ref} src={file.url} controls playsInline style={{ filter }} className="max-h-[60vh] w-full rounded-xl" />
+          : <img ref={ref} src={file.url} style={{ filter }} className="max-h-[60vh] rounded-xl" alt="Preview" />}
+      </Card>
+      <Card className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {Object.keys(LOOKS).map((k) => <button key={k} onClick={() => setV({ ...BASE, ...LOOKS[k] })} className={ghost}>{k}</button>)}
+        </div>
+        {SLIDERS.map(([k, label, min, max]) => (
+          <label key={k} className="block text-sm text-gray-300">
+            <span className="flex justify-between"><span>{label}</span><span className="text-gray-400">{v[k]}</span></span>
+            <input type="range" min={min} max={max} value={v[k]} onChange={(e) => setV({ ...v, [k]: +e.target.value })} />
+          </label>
+        ))}
+        <button onClick={capture} disabled={!file} className={`${btn} w-full`}><Icon n="camera" /> Save graded frame (PNG)</button>
+        <p className="text-xs text-gray-400">Your file stays on your device. Nothing is uploaded.</p>
+      </Card>
+    </div>
+  );
+}
+
+const RATIOS = [
+  { n: '9:16', w: 1080, h: 1920, u: 'TikTok, Reels, Shorts' }, { n: '16:9', w: 1920, h: 1080, u: 'YouTube, landscape' },
+  { n: '1:1', w: 1080, h: 1080, u: 'Square feed post' }, { n: '4:5', w: 1080, h: 1350, u: 'Instagram portrait' }, { n: '21:9', w: 2560, h: 1097, u: 'Cinematic widescreen' },
+];
+function AspectTool() {
+  const [r, setR] = useState(RATIOS[0]);
+  const [cw, setCw] = useState(1080);
+  const tall = r.h >= r.w;
+  return (
+    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <Card className="grid h-80 place-items-center">
+        <div className="relative bg-ink ring-1 ring-white/20" style={{ aspectRatio: `${r.w}/${r.h}`, height: tall ? '100%' : 'auto', width: tall ? 'auto' : '100%', maxWidth: '100%' }}>
+          <div className="absolute inset-[5%] border border-dashed border-accent/80" />
+          <div className="absolute inset-[10%] border border-dashed border-white/50" />
+          {r.n === '9:16' && <div className="absolute inset-x-0 bottom-0 grid h-[18%] place-items-center bg-red-500/20 text-[10px] text-red-200">App buttons zone</div>}
+        </div>
+      </Card>
+      <Card className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {RATIOS.map((x) => <button key={x.n} onClick={() => setR(x)} aria-pressed={r.n === x.n} className={`${ghost} ${r.n === x.n ? '!border-accent !text-accent' : ''}`}>{x.n}</button>)}
+        </div>
+        <p className="text-sm text-gray-300">{r.u}<br /><span className="text-lg font-bold text-white">{r.w} × {r.h}</span></p>
+        <label className="block text-sm text-gray-300">Custom width (px)
+          <input type="number" min="1" value={cw} onChange={(e) => setCw(+e.target.value)} className={`${inp} mt-1`} /></label>
+        <p className="text-sm text-gray-300">Height at {r.n}: <b className="text-white">{Math.round((cw * r.h) / r.w) || 0}px</b></p>
+        <p className="text-xs text-gray-400">Yellow line: action safe (90%). White line: title safe (80%).</p>
+      </Card>
+    </div>
+  );
+}
+
+const toTC = (f, fps) => { const s = Math.floor(f / fps); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f % fps].map((n) => String(n).padStart(2, '0')).join(':'); };
+const fromTC = (t, fps) => { const p = t.split(':').map(Number); return p.length === 4 && !p.some(isNaN) ? ((p[0] * 60 + p[1]) * 60 + p[2]) * fps + p[3] : null; };
+function TimecodeTool() {
+  const [fps, setFps] = useState(30);
+  const [frames, setFrames] = useState(450);
+  const [tc, setTc] = useState('00:00:15:00');
+  const [dur, setDur] = useState(10);
+  const [speed, setSpeed] = useState(200);
+  const back = fromTC(tc, fps);
+  return (
+    <div className="grid gap-5 md:grid-cols-2">
+      <Card className="space-y-4">
+        <label className="block text-sm text-gray-300">Frame rate
+          <select value={fps} onChange={(e) => setFps(+e.target.value)} className={`${inp} mt-1`}>{[24, 25, 30, 50, 60].map((f) => <option key={f} value={f}>{f} fps</option>)}</select></label>
+        <label className="block text-sm text-gray-300">Frames to timecode
+          <input type="number" min="0" value={frames} onChange={(e) => setFrames(Math.max(0, +e.target.value))} className={`${inp} mt-1`} /></label>
+        <p className="text-2xl font-extrabold text-accent">{toTC(frames, fps)}</p>
+        <label className="block text-sm text-gray-300">Timecode to frames (HH:MM:SS:FF)
+          <input value={tc} onChange={(e) => setTc(e.target.value)} className={`${inp} mt-1`} /></label>
+        <p className="text-2xl font-extrabold text-accent">{back === null ? 'Use HH:MM:SS:FF' : `${back} frames`}</p>
+      </Card>
+      <Card className="space-y-4">
+        <h3 className="font-bold">Speed change</h3>
+        <label className="block text-sm text-gray-300">Clip length (seconds)
+          <input type="number" min="0" value={dur} onChange={(e) => setDur(+e.target.value)} className={`${inp} mt-1`} /></label>
+        <label className="block text-sm text-gray-300">Speed: {speed}%
+          <input type="range" min="10" max="800" value={speed} onChange={(e) => setSpeed(+e.target.value)} /></label>
+        <p className="text-sm text-gray-300">New length</p>
+        <p className="text-2xl font-extrabold text-accent">{(dur / (speed / 100)).toFixed(2)}s</p>
+      </Card>
+    </div>
+  );
+}
+
+function TapBpm() {
+  const [taps, setTaps] = useState([]);
+  const tap = () => { const now = performance.now(); setTaps((t) => (t.length && now - t[t.length - 1] > 2500 ? [now] : [...t, now]).slice(-9)); };
+  const iv = taps.slice(1).map((t, i) => t - taps[i]);
+  const bpm = iv.length ? Math.round(60000 / (iv.reduce((a, b) => a + b) / iv.length)) : 0;
+  return (
+    <div className="grid gap-5 md:grid-cols-2">
+      <Card className="grid place-items-center gap-4 py-10">
+        <p className="text-6xl font-extrabold text-accent">{bpm || '--'}<span className="ml-2 text-base text-gray-400">BPM</span></p>
+        <button onClick={tap} className="grid h-36 w-36 place-items-center rounded-full bg-accent text-lg font-extrabold text-ink active:scale-95">TAP</button>
+        <button onClick={() => setTaps([])} className={ghost}>Reset</button>
+      </Card>
+      <Card className="space-y-3">
+        <h3 className="font-bold">Where to cut</h3>
+        {bpm ? [['Every beat', 1], ['Every 2 beats', 2], ['Every bar (4 beats)', 4]].map(([l, m]) => (
+          <div key={l} className="flex justify-between rounded-xl bg-ink/60 px-4 py-3"><span className="text-gray-300">{l}</span><b>{((60 / bpm) * m).toFixed(2)}s</b></div>
+        )) : <p className="text-sm text-gray-400">Tap along to the song at least twice. Then cut your clips on these intervals so edits land on the beat.</p>}
+      </Card>
+    </div>
+  );
+}
+
+/* ---------- AI TOOLS ---------- */
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const LOCAL = {
+  hooks: (t) => [`Nobody tells you this about ${t}...`, `I tried ${t} for 7 days. Here is what happened.`, `Stop doing ${t} like this.`, `3 seconds is all you need to get ${t} right.`, `${t}: the mistake I made so you don't have to.`],
+  titles: (t) => [`${t} — Full Guide`, `How I Edit ${t} Like a Pro`, `${t}: Before vs After`, `The Only ${t} Tutorial You Need`, `${t} in 60 Seconds`],
+  hashtags: (t) => [`#${t.toLowerCase().replace(/\s+/g, '')}`, '#videoediting', '#editor', '#shorts', '#reels', '#fyp', '#cinematic', '#transitions'],
+  shots: (t) => [`1. Hook close-up, 2s: "${t}"`, '2. Wide establishing shot, 3s', '3. Detail or B-roll insert, 2s', '4. Medium shot with on-screen text, 4s', `5. Payoff shot: ${pick(['zoom-in', 'whip transition', 'speed ramp'])}, 3s`, '6. Call to action and end card, 2s'],
+};
+async function runAI(tool, input) {
+  if (AI_ENDPOINT) {
+    try {
+      const r = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool, input }) });
+      if (r.ok) { const d = await r.json(); return Array.isArray(d.result) ? d.result : String(d.result).split('\n').filter(Boolean); }
+    } catch (e) { /* fall back below */ }
+  }
+  await new Promise((r) => setTimeout(r, 350));
+  return LOCAL[tool](input);
+}
+function AiTool({ id, ph }) {
+  const [input, setInput] = useState('');
+  const [out, setOut] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [done, setDone] = useState(-1);
+  const run = async () => {
+    if (!input.trim()) return setErr('Enter a topic first.');
+    setErr(''); setBusy(true);
+    try { setOut(await runAI(id, input.trim())); } catch (e) { setErr('Something went wrong. Try again.'); }
+    setBusy(false);
+  };
+  const copy = (t, i) => { try { navigator.clipboard.writeText(t); setDone(i); setTimeout(() => setDone(-1), 1200); } catch (e) {} };
+  return (
+    <div className="max-w-2xl">
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && run()} placeholder={ph} className={inp} />
+        <button onClick={run} disabled={busy} className={btn}><Icon n="zap" />{busy ? 'Working...' : 'Generate'}</button>
+      </div>
+      {err && <p className="mt-2 text-sm text-red-300">{err}</p>}
+      <ul className="mt-5 space-y-2">
+        {out.map((l, i) => (
+          <li key={i} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-panel px-4 py-3">
+            <span>{l}</span>
+            <button onClick={() => copy(l, i)} title="Copy" className="text-gray-400 hover:text-white"><Icon n={done === i ? 'check' : 'copy'} /></button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* ---------- TOOL REGISTRY ---------- */
+const TOOLS = [
+  { id: 'grade', kind: 'edit', name: 'Color Grader', icon: 'sliders', hue: 270, desc: 'Preview looks on your own clip or image and save a graded frame.', C: ColorGrader },
+  { id: 'aspect', kind: 'edit', name: 'Aspect Ratio & Safe Zones', icon: 'maximize', hue: 200, desc: 'Export sizes for every platform, with safe-zone guides.', C: AspectTool },
+  { id: 'tc', kind: 'edit', name: 'Timecode & Speed', icon: 'clock', hue: 20, desc: 'Convert frames to timecode and work out new clip lengths.', C: TimecodeTool },
+  { id: 'bpm', kind: 'edit', name: 'Tap BPM', icon: 'music', hue: 330, desc: 'Find a song\'s tempo and the beat intervals to cut on.', C: TapBpm },
+  { id: 'hooks', kind: 'ai', name: 'Hook Writer', icon: 'zap', hue: 45, desc: 'Opening lines that stop the scroll in the first 3 seconds.', C: () => <AiTool id="hooks" ph="What is your video about?" /> },
+  { id: 'titles', kind: 'ai', name: 'Title Generator', icon: 'type', hue: 160, desc: 'Clear, clickable titles for your videos.', C: () => <AiTool id="titles" ph="Video topic" /> },
+  { id: 'hashtags', kind: 'ai', name: 'Hashtag Finder', icon: 'hash', hue: 230, desc: 'A ready set of hashtags for Shorts, Reels and TikTok.', C: () => <AiTool id="hashtags" ph="Main keyword" /> },
+  { id: 'shots', kind: 'ai', name: 'Shot List Planner', icon: 'list', hue: 300, desc: 'Turn an idea into a shot-by-shot plan before you film.', C: () => <AiTool id="shots" ph="Describe your video idea" /> },
+];
+
+/* ---------- APP ---------- */
+function App() {
+  const [active, setActive] = useState(null);
+  const [q, setQ] = useState('');
+  const [kind, setKind] = useState('all');
+  const list = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return TOOLS.filter((t) => (kind === 'all' || t.kind === kind) && (!s || (t.name + ' ' + t.desc).toLowerCase().includes(s)));
+  }, [q, kind]);
+  const tool = TOOLS.find((t) => t.id === active);
+  const go = (id) => { setActive(id); window.scrollTo({ top: 0 }); };
+
+  return (
+    <>
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-panel/70 px-5 py-3 backdrop-blur-md">
+        <button onClick={() => go(null)} className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-ink shadow-lg shadow-accent/20"><Icon n="video" s={22} /></span>
+          <span className="text-xl font-extrabold tracking-tight">ClipMed</span>
+        </button>
+        {tool && <button onClick={() => go(null)} className={ghost}><Icon n="back" s={16} /> All tools</button>}
+      </header>
+
+      <main className="mx-auto max-w-6xl px-5 pb-16">
+        {tool ? (
+          <section className="pt-8">
+            <div className="mb-6 flex items-start gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent text-ink"><Icon n={tool.icon} s={24} /></span>
+              <div><h1 className="text-3xl font-extrabold tracking-tight">{tool.name}</h1><p className="mt-1 text-gray-400">{tool.desc}</p></div>
             </div>
-            <span class="text-xl font-bold tracking-tight">ClipMed</span>
-        </div>
-        <div class="flex items-center gap-2">
-            <button class="p-2.5 rounded-xl bg-panel border border-white/10 hover:border-accent/50 transition">
-                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-            </button>
-        </div>
-    </header>
+            <tool.C />
+          </section>
+        ) : (
+          <>
+            <section className="grid items-center gap-8 pt-10 md:grid-cols-2">
+              <div>
+                <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">Edit faster with tools that work right here.</h1>
+                <p className="mt-4 max-w-lg text-gray-400 md:text-lg">Grade footage, size your export, cut to the beat, and plan your next video with AI. No downloads, no sign-up.</p>
+              </div>
+              <HeroArt />
+            </section>
 
-    <!-- Hero Section -->
-    <main class="max-w-6xl mx-auto px-6 pt-10">
-        <div class="text-center md:text-left mb-10">
-            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 leading-tight">
-                Every template your edit <span class="text-accent">needs, in one vault.</span>
-            </h1>
-            <p class="text-gray-400 text-base md:text-lg max-w-2xl">
-                Transitions, intros, LUTs and presets. Find one, open it in Drive, drop it on your timeline.
-            </p>
-        </div>
-
-        <!-- Search & Filter Bar -->
-        <div class="space-y-4 mb-8">
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </span>
-                <input type="text" placeholder="Search templates or tags..." class="w-full pl-12 pr-4 py-3.5 bg-panel/80 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-accent transition">
+            <div className="mt-10 space-y-4">
+              <label className="relative block">
+                <span className="sr-only">Search tools</span>
+                <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400"><Icon n="search" /></span>
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tools..." className={`${inp} pl-12`} />
+              </label>
+              <div className="noscroll flex gap-2.5 overflow-x-auto" role="group" aria-label="Tool type">
+                {[['all', 'All tools'], ['edit', 'Editing tools'], ['ai', 'AI tools']].map(([k, l]) => (
+                  <button key={k} onClick={() => setKind(k)} aria-pressed={kind === k}
+                    className={`whitespace-nowrap rounded-xl px-5 py-2.5 text-sm font-semibold ${kind === k ? 'bg-accent text-ink' : 'border border-white/10 bg-panel text-gray-300 hover:border-white/30'}`}>{l}</button>
+                ))}
+              </div>
             </div>
 
-            <!-- Categories Buttons -->
-            <div class="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
-                <button class="px-5 py-2.5 rounded-xl bg-accent text-ink font-semibold text-sm whitespace-nowrap shadow-md">All</button>
-                <button class="px-5 py-2.5 rounded-xl bg-panel border border-white/10 text-gray-300 font-medium text-sm whitespace-nowrap hover:border-white/30 transition">Transitions</button>
-                <button class="px-5 py-2.5 rounded-xl bg-panel border border-white/10 text-gray-300 font-medium text-sm whitespace-nowrap hover:border-white/30 transition">Intros</button>
-                <button class="px-5 py-2.5 rounded-xl bg-panel border border-white/10 text-gray-300 font-medium text-sm whitespace-nowrap hover:border-white/30 transition">Color & LUTs</button>
-                <button class="px-5 py-2.5 rounded-xl bg-panel border border-white/10 text-gray-300 font-medium text-sm whitespace-nowrap hover:border-white/30 transition">Presets</button>
-                <button class="px-5 py-2.5 rounded-xl bg-panel border border-white/10 text-gray-300 font-medium text-sm whitespace-nowrap hover:border-white/30 transition">Overlays</button>
-            </div>
-        </div>
-
-        <!-- Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Card 1 -->
-            <div class="bg-panel rounded-2xl border border-white/10 overflow-hidden hover:border-accent/40 transition group">
-                <div class="h-44 bg-gradient-to-br from-indigo-900 to-purple-900 relative p-4 flex flex-col justify-between">
-                    <span class="absolute top-3 left-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-accent">Transitions</span>
-                    <span class="absolute top-3 right-3 text-yellow-400 text-lg">★</span>
-                    <div class="mt-auto">
-                        <span class="text-xs text-gray-300 bg-white/10 px-2.5 py-1 rounded-md">CapCut & Premiere</span>
+            {list.length === 0 ? (
+              <p className="mt-16 text-center text-gray-400">No tool matches that search. Try another word.</p>
+            ) : (
+              <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {list.map((t, i) => (
+                  <button key={t.id} onClick={() => go(t.id)} className="group overflow-hidden rounded-2xl border border-white/10 bg-panel text-left transition hover:border-accent/50">
+                    <div className="relative h-40">
+                      <Cover hue={t.hue} kind={t.kind} seed={i + 1} />
+                      <span className="absolute left-3 top-3 rounded-lg bg-black/40 px-3 py-1 text-xs font-semibold text-accent backdrop-blur-md">{t.kind === 'ai' ? 'AI tool' : 'Editing tool'}</span>
+                      <span className="absolute bottom-3 right-3 grid h-10 w-10 place-items-center rounded-xl bg-accent text-ink"><Icon n={t.icon} /></span>
                     </div>
-                </div>
-                <div class="p-5">
-                    <h3 class="font-bold text-lg mb-1 group-hover:text-accent transition">Smooth Zoom Transitions Pack</h3>
-                    <p class="text-gray-400 text-sm mb-4">20 drag-and-drop zoom and whip transitions.</p>
-                    <a href="https://drive.google.com" target="_blank" class="block w-full text-center py-3 rounded-xl bg-accent/10 text-accent font-semibold text-sm hover:bg-accent hover:text-ink transition">
-                        🔗 Open in Drive
-                    </a>
-                </div>
-            </div>
-
-            <!-- Card 2 -->
-            <div class="bg-panel rounded-2xl border border-white/10 overflow-hidden hover:border-accent/40 transition group">
-                <div class="h-44 bg-gradient-to-br from-blue-900 to-cyan-900 relative p-4 flex flex-col justify-between">
-                    <span class="absolute top-3 left-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-accent">Color & LUTs</span>
-                    <span class="absolute top-3 right-3 text-yellow-400 text-lg">★</span>
-                    <div class="mt-auto">
-                        <span class="text-xs text-gray-300 bg-white/10 px-2.5 py-1 rounded-md">Cinematic Look</span>
+                    <div className="p-5">
+                      <h3 className="text-lg font-bold group-hover:text-accent">{t.name}</h3>
+                      <p className="mt-1 text-sm text-gray-400">{t.desc}</p>
+                      <span className="mt-4 block rounded-xl bg-accent/10 py-3 text-center text-sm font-semibold text-accent group-hover:bg-accent group-hover:text-ink">Open tool</span>
                     </div>
-                </div>
-                <div class="p-5">
-                    <h3 class="font-bold text-lg mb-1 group-hover:text-accent transition">Cinematic Teal & Orange LUTs</h3>
-                    <p class="text-gray-400 text-sm mb-4">10 LUTs for travel and short films.</p>
-                    <a href="https://drive.google.com" target="_blank" class="block w-full text-center py-3 rounded-xl bg-accent/10 text-accent font-semibold text-sm hover:bg-accent hover:text-ink transition">
-                        🔗 Open in Drive
-                    </a>
-                </div>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="bg-panel rounded-2xl border border-white/10 overflow-hidden hover:border-accent/40 transition group">
-                <div class="h-44 bg-gradient-to-br from-orange-900 to-red-900 relative p-4 flex flex-col justify-between">
-                    <span class="absolute top-3 left-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-medium text-accent">Intros</span>
-                    <span class="absolute top-3 right-3 text-yellow-400 text-lg">★</span>
-                    <div class="mt-auto">
-                        <span class="text-xs text-gray-300 bg-white/10 px-2.5 py-1 rounded-md">Gaming Edition</span>
-                    </div>
-                </div>
-                <div class="p-5">
-                    <h3 class="font-bold text-lg mb-1 group-hover:text-accent transition">Gaming Intro Template</h3>
-                    <p class="text-gray-400 text-sm mb-4">Glitchy & dynamic intro with text.</p>
-                    <a href="https://drive.google.com" target="_blank" class="block w-full text-center py-3 rounded-xl bg-accent/10 text-accent font-semibold text-sm hover:bg-accent hover:text-ink transition">
-                        🔗 Open in Drive
-                    </a>
-                </div>
-            </div>
-        </div>
-    </main>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </main>
+    </>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
