@@ -171,6 +171,7 @@ const I18N = {
         'Choose a photo': `Choisir une photo`, 'or drop it here': `ou déposez-la ici`, 'Loading the AI model (first time only)...': `Chargement du modèle IA (première fois seulement)...`,
         'Cutting out the subject...': `Détourage du sujet...`, 'Before / After': `Avant / Après`, 'Background': `Arrière-plan`, 'Transparent': `Transparent`, 'Color': `Couleur`, 'Blur': `Flou`,
         'Cutoff': `Seuil`, 'Edge softness': `Douceur des bords`, 'Soft shadow': `Ombre douce`, 'Download PNG': `Télécharger en PNG`,
+        'Smooth edges': `Lissage des bords`, 'Clean specks': `Nettoyer les points parasites`, 'High quality (bigger download)': `Haute qualité (téléchargement plus lourd)`,
         'Your photo never leaves your device. The AI model downloads once, then stays cached.': `Votre photo ne quitte jamais votre appareil. Le modèle IA se télécharge une fois, puis reste en cache.`,
         'Could not process the image. Check your connection and try again.': `Impossible de traiter l'image. Vérifiez votre connexion et réessayez.`,
         'Thumbnail Maker': `Créateur de miniatures`, 'Make a 1280×720 thumbnail with big text over any image.': `Créez une miniature 1280×720 avec un grand texte sur n'importe quelle image.`,
@@ -214,6 +215,7 @@ const I18N = {
         'Choose a photo': `اختر صورة`, 'or drop it here': `أو أفلتها هنا`, 'Loading the AI model (first time only)...': `جارٍ تحميل نموذج الذكاء الاصطناعي (أول مرة فقط)...`,
         'Cutting out the subject...': `جارٍ فصل العنصر عن الخلفية...`, 'Before / After': `قبل / بعد`, 'Background': `الخلفية`, 'Transparent': `شفافة`, 'Color': `لون`, 'Blur': `ضبابية`,
         'Cutoff': `حد القص`, 'Edge softness': `نعومة الحواف`, 'Soft shadow': `ظل ناعم`, 'Download PNG': `تحميل PNG`,
+        'Smooth edges': `تنعيم الحواف`, 'Clean specks': `إزالة النقاط الشاردة`, 'High quality (bigger download)': `جودة عالية (تحميل أكبر)`,
         'Your photo never leaves your device. The AI model downloads once, then stays cached.': `صورتك لا تغادر جهازك. يتم تحميل النموذج مرة واحدة ثم يبقى مخزّنًا.`,
         'Could not process the image. Check your connection and try again.': `تعذّرت معالجة الصورة. تحقق من اتصالك وحاول مرة أخرى.`,
         'Thumbnail Maker': `صانع الصور المصغّرة`, 'Make a 1280×720 thumbnail with big text over any image.': `اصنع صورة مصغّرة 1280×720 بنص كبير فوق أي صورة.`,
@@ -526,11 +528,12 @@ function ThumbnailMaker() {
 const TF_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
 const BG_MODEL = 'briaai/RMBG-1.4';
 const MAX_SIDE = 1600;
-let BG_AI = null;
+const BG_AI = {};
 const dynImport = new Function('u', 'return import(u)');
-async function loadBgAI(onProgress) {
-    if (BG_AI)
-        return BG_AI;
+async function loadBgAI(onProgress, hq) {
+    const key = hq ? 'hq' : 'fast';
+    if (BG_AI[key])
+        return BG_AI[key];
     const tf = await dynImport(TF_URL);
     tf.env.allowLocalModels = false;
     try {
@@ -540,7 +543,7 @@ async function loadBgAI(onProgress) {
     const base = { config: { model_type: 'custom' }, progress_callback: (p) => { if (p.status === 'progress' && typeof p.progress === 'number')
             onProgress(Math.round(p.progress)); } };
     let model = null, lastErr = null;
-    for (const extra of [{ dtype: 'q8' }, {}]) {
+    for (const extra of (hq ? [{}] : [{ dtype: 'q8' }, {}])) {
         try {
             model = await tf.AutoModel.from_pretrained(BG_MODEL, { ...base, ...extra });
             break;
@@ -552,8 +555,8 @@ async function loadBgAI(onProgress) {
     if (!model)
         throw lastErr;
     const processor = await tf.AutoProcessor.from_pretrained(BG_MODEL, { config: { do_normalize: true, do_pad: false, do_rescale: true, do_resize: true, image_mean: [0.5, 0.5, 0.5], feature_extractor_type: 'ImageFeatureExtractor', image_std: [1, 1, 1], resample: 2, rescale_factor: 0.00392156862745098, size: { width: 1024, height: 1024 } } });
-    BG_AI = { model, processor, RawImage: tf.RawImage };
-    return BG_AI;
+    BG_AI[key] = { model, processor, RawImage: tf.RawImage };
+    return BG_AI[key];
 }
 function loadPhoto(file) {
     return new Promise((resolve, reject) => {
@@ -616,37 +619,116 @@ function compose(base, mask, o) {
     x.drawImage(cut, 0, 0);
     return out;
 }
+function boxBlur(src, w, h, r) {
+    if (r < 1)
+        return src;
+    const tmp = new Uint8ClampedArray(w * h), out = new Uint8ClampedArray(w * h), k = 2 * r + 1;
+    for (let y = 0; y < h; y++) {
+        const row = y * w;
+        let sum = 0;
+        for (let x = -r; x <= r; x++)
+            sum += src[row + Math.min(w - 1, Math.max(0, x))];
+        for (let x = 0; x < w; x++) {
+            tmp[row + x] = sum / k;
+            sum += src[row + Math.min(w - 1, x + r + 1)] - src[row + Math.max(0, x - r)];
+        }
+    }
+    for (let x = 0; x < w; x++) {
+        let sum = 0;
+        for (let y = -r; y <= r; y++)
+            sum += tmp[Math.min(h - 1, Math.max(0, y)) * w + x];
+        for (let y = 0; y < h; y++) {
+            out[y * w + x] = sum / k;
+            sum += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x];
+        }
+    }
+    return out;
+}
+// removes small isolated blobs (8-connected) so stray specks around the subject disappear
+function cleanSpecks(m, w, h, minArea) {
+    const n = w * h, T = 40, lab = new Int32Array(n), stack = new Int32Array(n), sizes = [0], out = new Uint8ClampedArray(m);
+    let id = 0, biggest = 0, biggestId = 0;
+    for (let s = 0; s < n; s++) {
+        if (lab[s] || m[s] < T)
+            continue;
+        id++;
+        let sp = 0, size = 0;
+        stack[sp++] = s;
+        lab[s] = id;
+        while (sp) {
+            const p = stack[--sp];
+            size++;
+            const y = (p / w) | 0, x = p - y * w;
+            for (let dy = -1; dy <= 1; dy++) {
+                const yy = y + dy;
+                if (yy < 0 || yy >= h)
+                    continue;
+                for (let dx = -1; dx <= 1; dx++) {
+                    const xx = x + dx;
+                    if (xx < 0 || xx >= w)
+                        continue;
+                    const q = yy * w + xx;
+                    if (!lab[q] && m[q] >= T) {
+                        lab[q] = id;
+                        stack[sp++] = q;
+                    }
+                }
+            }
+        }
+        sizes[id] = size;
+        if (size > biggest) {
+            biggest = size;
+            biggestId = id;
+        }
+    }
+    for (let i = 0; i < n; i++) {
+        const l = lab[i];
+        if (l && l !== biggestId && sizes[l] < minArea)
+            out[i] = 0;
+    }
+    return out;
+}
 const CHECKER = { backgroundImage: 'conic-gradient(#3a3d63 25%, #2a2d52 0 50%, #3a3d63 0 75%, #2a2d52 0)', backgroundSize: '20px 20px' };
 function BgRemover() {
     const [src, setSrc] = useState(null);
     const [stage, setStage] = useState('idle');
     const [pct, setPct] = useState(0);
     const [err, setErr] = useState('');
-    const [o, setO] = useState({ bg: 'transparent', color: '#FFFFFF', cut: 50, soft: 12, shadow: false });
+    const [o, setO] = useState({ bg: 'transparent', color: '#FFFFFF', cut: 50, soft: 14, smooth: 1, specks: 40, shadow: false });
+    const [hq, setHq] = useState(false);
+    const [ver, setVer] = useState(0);
     const [split, setSplit] = useState(0);
-    const base = useRef(null), mask = useRef(null), view = useRef(null);
+    const base = useRef(null), mask = useRef(null), m2 = useRef(null), photoRef = useRef(null), view = useRef(null);
     const set = (k, v) => setO((p) => ({ ...p, [k]: v }));
     useEffect(() => {
-        if (stage !== 'done' || !view.current)
+        if (stage !== 'done')
             return;
-        const out = compose(base.current, mask.current, o);
+        const t = setTimeout(() => {
+            const { width: w, height: h } = base.current;
+            m2.current = cleanSpecks(boxBlur(mask.current, w, h, o.smooth), w, h, (o.specks * w * h) / 20000);
+            setVer((v) => v + 1);
+        }, m2.current ? 150 : 0);
+        return () => clearTimeout(t);
+    }, [stage, o.smooth, o.specks]);
+    useEffect(() => {
+        if (stage !== 'done' || !m2.current || !view.current)
+            return;
+        const out = compose(base.current, m2.current, o);
         const c = view.current;
         c.width = out.width;
         c.height = out.height;
         c.getContext('2d').drawImage(out, 0, 0);
-    }, [stage, o]);
-    const start = async (file) => {
-        if (!file || !file.type.startsWith('image/'))
-            return;
+    }, [ver, o.bg, o.color, o.cut, o.soft, o.shadow]);
+    const run = async (photo, quality) => {
         setErr('');
         setStage('loading');
         setPct(0);
         setSplit(0);
+        m2.current = null;
         try {
-            const photo = await loadPhoto(file);
             base.current = photo.canvas;
             setSrc(photo.url);
-            const ai = await loadBgAI(setPct);
+            const ai = await loadBgAI(setPct, quality);
             setStage('processing');
             mask.current = await segment(ai, photo.url, photo.canvas.width, photo.canvas.height);
             setStage('done');
@@ -657,6 +739,22 @@ function BgRemover() {
             setStage('error');
         }
     };
+    const start = async (file) => {
+        if (!file || !file.type.startsWith('image/'))
+            return;
+        try {
+            const photo = await loadPhoto(file);
+            photoRef.current = photo;
+            await run(photo, hq);
+        }
+        catch (e) {
+            console.error(e);
+            setErr(tr('Could not process the image. Check your connection and try again.'));
+            setStage('error');
+        }
+    };
+    const toggleHq = (v) => { setHq(v); if (photoRef.current)
+        run(photoRef.current, v); };
     const save = () => view.current.toBlob((b) => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'clipmed-cutout.png'; a.click(); }, 'image/png');
     const busy = stage === 'loading' || stage === 'processing';
     const done = stage === 'done';
@@ -685,6 +783,10 @@ function BgRemover() {
                 " ",
                 tr('Choose a photo'),
                 React.createElement("input", { type: "file", accept: "image/*", className: "sr-only", onChange: (e) => start(e.target.files[0]) })),
+            React.createElement("label", { className: "flex items-center gap-2 text-sm text-gray-300" },
+                React.createElement("input", { type: "checkbox", checked: hq, disabled: busy, onChange: (e) => toggleHq(e.target.checked) }),
+                " ",
+                tr('High quality (bigger download)')),
             done && (React.createElement(React.Fragment, null,
                 React.createElement("label", { className: "block text-sm text-gray-300" },
                     tr('Before / After'),
@@ -705,6 +807,16 @@ function BgRemover() {
                     ": ",
                     o.soft,
                     React.createElement("input", { type: "range", min: "0", max: "60", value: o.soft, onChange: (e) => set('soft', +e.target.value) })),
+                React.createElement("label", { className: "block text-sm text-gray-300" },
+                    tr('Smooth edges'),
+                    ": ",
+                    o.smooth,
+                    React.createElement("input", { type: "range", min: "0", max: "4", value: o.smooth, onChange: (e) => set('smooth', +e.target.value) })),
+                React.createElement("label", { className: "block text-sm text-gray-300" },
+                    tr('Clean specks'),
+                    ": ",
+                    o.specks,
+                    React.createElement("input", { type: "range", min: "0", max: "100", value: o.specks, onChange: (e) => set('specks', +e.target.value) })),
                 React.createElement("label", { className: "flex items-center gap-2 text-sm text-gray-300" },
                     React.createElement("input", { type: "checkbox", checked: o.shadow, onChange: (e) => set('shadow', e.target.checked) }),
                     " ",
