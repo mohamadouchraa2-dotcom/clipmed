@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key is missing' });
+    return res.status(500).json({ error: 'API key is missing in server environment variables' });
   }
 
   try {
@@ -26,12 +26,12 @@ export default async function handler(req, res) {
     );
 
     const data = await apiResponse.json();
-
+    
     if (data.error) {
       return res.status(500).json({ error: data.error.message || 'Gemini API Error' });
     }
 
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from AI';
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ما كاين حتى جواب.';
     return res.status(200).json({ reply });
   } catch (error) {
     return res.status(500).json({ error: error.message || 'Server connection failed' });
