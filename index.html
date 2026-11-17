@@ -48,7 +48,9 @@
 <script>
 "use strict";
 const { useState, useMemo, useRef, useEffect, useContext } = React;
+/* ---------- CONFIG ---------- */
 const AI_ENDPOINT = '/api/ai';
+/* ---------- ICONS (inline, no library) ---------- */
 const P = {
     search: React.createElement(React.Fragment, null,
         React.createElement("circle", { cx: "11", cy: "11", r: "8" }),
@@ -112,7 +114,7 @@ const P = {
     user: React.createElement(React.Fragment, null,
         React.createElement("path", { d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }),
         React.createElement("circle", { cx: "12", cy: "7", r: "4" })),
-    folder: React.createElement("path", { d: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" })),
+    folder: React.createElement("path", { d: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" }),
     logout: React.createElement(React.Fragment, null,
         React.createElement("path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }),
         React.createElement("polyline", { points: "16 17 21 12 16 7" }),
@@ -170,6 +172,7 @@ const P = {
         React.createElement("polyline", { points: "21 15 16 10 5 21" })),
 };
 const Icon = ({ n, s = 18, c = '' }) => (React.createElement("svg", { width: s, height: s, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: c, "aria-hidden": "true" }, P[n]));
+/* ---------- LANGUAGES (en / fr / ar) ---------- */
 const NAMES = { en: 'English', fr: 'Français', ar: 'العربية' };
 let LANG = 'en';
 const tr = (k) => (I18N[LANG] && I18N[LANG][k]) || k;
@@ -313,6 +316,7 @@ function LangPicker({ onPick }) {
                 React.createElement("span", { dir: "rtl" }, "\u0627\u062E\u062A\u0631 \u0644\u063A\u062A\u0643")),
             React.createElement("div", { className: "mt-8 space-y-3" }, Object.entries(NAMES).map(([k, n]) => (React.createElement("button", { key: k, onClick: () => onPick(k), className: "w-full rounded-2xl glass glow py-4 text-lg font-bold hover:border-accent hover:text-accent" }, n)))))));
 }
+/* ---------- GENERATED ARTWORK (no external images) ---------- */
 const Logo = ({ s = 40 }) => (React.createElement("svg", { width: s, height: s, viewBox: "0 0 48 48", "aria-hidden": "true", style: { filter: 'drop-shadow(0 0 10px rgba(250,204,21,.45))' } },
     React.createElement("defs", null,
         React.createElement("linearGradient", { id: `lg${s}`, x1: "0", y1: "0", x2: "1", y2: "1" },
@@ -419,10 +423,12 @@ const HeroArt = () => (React.createElement("svg", { viewBox: "0 0 400 220", clas
     Array.from({ length: 52 }, (_, i) => { const h = 6 + Math.abs(Math.sin(i * 0.6)) * 30; return React.createElement("rect", { key: i, x: 20 + i * 6.8, y: 158 - h / 2, width: "3.5", height: h, rx: "1.7", fill: "#3DDBD9", opacity: ".8" }); }),
     React.createElement("line", { x1: "215", y1: "30", x2: "215", y2: "200", stroke: "#FACC15", strokeWidth: "2" }),
     React.createElement("polygon", { points: "208,26 222,26 215,38", fill: "#FACC15" })));
+/* ---------- SHARED UI ---------- */
 const inp = 'w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-400 backdrop-blur-md focus:border-accent focus:outline-none focus:shadow-[0_0_20px_-4px_rgba(250,204,21,.5)]';
 const btn = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 font-bold text-ink hover:brightness-110 disabled:opacity-60 neon';
 const ghost = 'inline-flex items-center justify-center gap-2 rounded-xl glass px-4 py-2.5 text-sm font-semibold text-gray-300 hover:border-accent/50 hover:text-white';
 const Card = ({ children, className = '' }) => React.createElement("div", { className: `rounded-2xl glass glow p-5 ${className}` }, children);
+/* ---------- EDITING TOOLS ---------- */
 const BASE = { b: 100, c: 100, s: 100, h: 0, sep: 0, blur: 0 };
 const LOOKS = {
     Original: {}, Cinematic: { b: 95, c: 120, s: 90, h: -6, sep: 12 }, Vivid: { b: 105, c: 115, s: 150 },
@@ -454,7 +460,7 @@ function ColorGrader() {
             ctx.filter = filter;
             ctx.drawImage(el, 0, 0, w, h);
         }
-        else {
+        else { // Safari fallback: brightness, contrast, saturation only
             ctx.drawImage(el, 0, 0, w, h);
             const d = ctx.getImageData(0, 0, w, h), p = d.data, B = v.b / 100, C = v.c / 100, S = v.s / 100;
             for (let i = 0; i < p.length; i += 4) {
@@ -616,7 +622,7 @@ async function loadBgAI(onProgress, hq) {
     try {
         tf.env.backends.onnx.wasm.proxy = true;
     }
-    catch (e) { }
+    catch (e) { /* optional */ }
     const base = { config: { model_type: 'custom' }, progress_callback: (p) => { if (p.status === 'progress' && typeof p.progress === 'number')
             onProgress(Math.round(p.progress)); } };
     let model = null, lastErr = null;
@@ -671,7 +677,7 @@ function compose(base, mask, o, fg) {
     for (let i = 0, n = w * h; i < n; i++) {
         const a = (mask[i] - lo) / span, j = i * 4;
         d[j + 3] = a <= 0 ? 0 : a >= 1 ? 255 : a * 255;
-        if (fg && df > 0 && mask[i] < 245 && fg[j + 3] > 10) {
+        if (fg && df > 0 && mask[i] < 245 && fg[j + 3] > 10) { // pull edge colours toward the nearby subject colour (removes the light halo)
             const wg = df * Math.min(1, (245 - mask[i]) / 120);
             d[j] += (fg[j] - d[j]) * wg;
             d[j + 1] += (fg[j + 1] - d[j + 1]) * wg;
@@ -728,6 +734,7 @@ function boxBlur(src, w, h, r) {
     }
     return out;
 }
+// removes small isolated blobs (8-connected) so stray specks around the subject disappear
 function cleanSpecks(m, w, h, minArea) {
     const n = w * h, T = 40, lab = new Int32Array(n), stack = new Int32Array(n), sizes = [0], out = new Uint8ClampedArray(m);
     let id = 0, biggest = 0, biggestId = 0;
@@ -941,6 +948,7 @@ function BgRemover() {
                     tr('Download PNG')))),
             React.createElement("p", { className: "text-xs text-gray-400" }, tr('Your photo never leaves your device. The AI model downloads once, then stays cached.')))));
 }
+/* ---------- AI STUDIO & TIMELINE PRO ---------- */
 const TRACKS = [['video', 'Video', '#6366F1'], ['broll', 'B-Roll', '#3DDBD9'], ['audio', 'Audio / Music', '#22C55E'], ['text', 'Text', '#FACC15'], ['fx', 'AI Effects', '#F472B6']];
 const TCOLOR = Object.fromEntries(TRACKS.map(([k, , c]) => [k, c]));
 let CID = 100;
@@ -975,6 +983,7 @@ function splitAtTimes(cs, track, times) {
         out = splitClip(out, c.id, t); });
     return out;
 }
+// ripple-delete time ranges on every track
 function cutRanges(cs, ranges) {
     const rs = ranges.slice().sort((a, b) => a[0] - b[0]);
     const removedBefore = (t) => rs.reduce((s, [a, b]) => s + Math.max(0, Math.min(t, b) - a), 0);
@@ -1336,7 +1345,7 @@ function StudioPro({ initial }) {
                             beats.sim && React.createElement("p", { className: "text-xs text-gray-400" }, tr('Demo mode: no audio loaded, results are simulated.')))))) : (React.createElement(Card, { className: "space-y-4" },
                     React.createElement("p", { className: "text-sm text-gray-300" }, tr('Preset')),
                     React.createElement("div", { className: "flex flex-wrap gap-2" }, FX_NAMES.map(([key, l]) => React.createElement("button", { key: key, onClick: () => setFx({ ...fx, preset: key }), "aria-pressed": fx.preset === key, className: `${ghost} ${fx.preset === key ? '!border-accent !text-accent' : ''}` }, tr(l)))),
-                    [['k', 'Intensity', 0, 100], ['mb', 'Motion blur', 0, 12], ['glitch', 'Glitch', 0, 100']].map(([key, l, min, max]) => (React.createElement("label", { key: key, className: "block text-sm text-gray-300" },
+                    [['k', 'Intensity', 0, 100], ['mb', 'Motion blur', 0, 12], ['glitch', 'Glitch', 0, 100]].map(([key, l, min, max]) => (React.createElement("label", { key: key, className: "block text-sm text-gray-300" },
                         tr(l),
                         ": ",
                         fx[key],
@@ -1365,8 +1374,9 @@ function StudioPro({ initial }) {
                         tr('Download project file')) : React.createElement("button", { onClick: startRender, disabled: ex.run, className: `${btn} flex-1` }, tr('Start render')),
                     React.createElement("button", { onClick: () => { clearInterval(timer.current); setEx(null); }, className: ghost }, tr('Close'))))))));
 }
+/* ---------- ACCOUNTS + SAVED PROJECTS (Supabase) ---------- */
 const SUPABASE_URL = 'https://smbajmemivfwkrphajmy.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_qNtdhdTxdDWGhbfoAunUAw__fj2_CfW';
+const SUPABASE_KEY = 'sb_publishable_qNtdhdTxdDWGhbfoAunUAw__fj2_CfW'; // publishable key: safe in the browser, Row Level Security protects the data
 let SB = null;
 async function getSB() {
     if (SB)
@@ -1425,6 +1435,17 @@ function AuthModal({ mode, setMode, onClose }) {
         }
         setBusy(false);
     };
+    const google = async () => {
+        try {
+            const sb = await getSB();
+            const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+            if (error)
+                throw error;
+        }
+        catch (e) {
+            setErr(e.message || tr('Something went wrong. Try again.'));
+        }
+    };
     const forgot = async () => {
         setErr('');
         setMsg('');
@@ -1457,7 +1478,15 @@ function AuthModal({ mode, setMode, onClose }) {
             err && React.createElement("p", { className: "text-sm text-red-300" }, err),
             msg && React.createElement("p", { className: "text-sm text-accent" }, msg),
             React.createElement("button", { onClick: submit, disabled: busy, className: `${btn} w-full` }, busy ? tr('Working...') : tr(mode === 'login' ? 'Log In' : 'Create Account')),
-            mode === 'login' && React.createElement("button", { onClick: forgot, className: "block w-full text-center text-sm text-gray-400 hover:text-white" }, tr('Forgot password?')))));
+            mode === 'login' && React.createElement("button", { onClick: forgot, className: "block w-full text-center text-sm text-gray-400 hover:text-white" }, tr('Forgot password?')),
+            React.createElement("div", { className: "flex items-center gap-3 text-xs text-gray-500" },
+                React.createElement("span", { className: "h-px flex-1 bg-white/10" }),
+                tr('or'),
+                React.createElement("span", { className: "h-px flex-1 bg-white/10" })),
+            React.createElement("button", { onClick: google, className: `${ghost} w-full !py-3` },
+                React.createElement("span", { className: "grid h-5 w-5 place-items-center rounded-full bg-white text-xs font-extrabold text-ink" }, "G"),
+                " ",
+                tr('Continue with Google')))));
 }
 function MyProjects({ user, onOpen, openAuth, flash }) {
     const [rows, setRows] = useState(null);
@@ -1496,7 +1525,7 @@ function MyProjects({ user, onOpen, openAuth, flash }) {
         navigator.clipboard.writeText(projectText(r));
         flash(tr('Copied'));
     }
-    catch (e) { } };
+    catch (e) { /* blocked */ } };
     const shown = (rows || []).filter((r) => cat === 'all' || catOf(r.kind) === cat);
     return (React.createElement("div", null,
         React.createElement("h1", { className: "mb-5 text-3xl font-extrabold tracking-tight" }, tr('My Projects')),
@@ -1590,7 +1619,7 @@ async function runAI(id, input) {
     try {
         data = await r.json();
     }
-    catch (e) { }
+    catch (e) { /* not JSON */ }
     if (!r.ok || !data.reply)
         throw new Error(`${r.status} ${data.error || 'No details'}`);
     const clean = data.reply.replace(/\*\*/g, '');
@@ -1641,6 +1670,7 @@ function AiTool({ id, ph, initial }) {
         out.length > 0 && !busy && React.createElement("div", { className: "mt-4" },
             React.createElement(SaveBtn, { kind: id, title: `${kindName(id)}: ${input}`, data: { input, output: out } }))));
 }
+/* ---------- TOOL REGISTRY ---------- */
 const TOOLS = [
     { id: 'studio', kind: 'edit', name: 'AI Studio & Timeline Pro', icon: 'video', hue: 255, desc: 'A multi-track editor with AI auto-reframe, silence remover, beat sync and cinematic FX.', C: StudioPro },
     { id: 'grade', kind: 'edit', name: 'Color Grader', icon: 'sliders', hue: 270, desc: 'Preview looks on your own clip or image and save a graded frame.', C: ColorGrader },
@@ -1654,6 +1684,7 @@ const TOOLS = [
     { id: 'ideas', kind: 'ai', name: 'Video Idea Generator', icon: 'bulb', hue: 90, desc: 'Fresh video ideas for your niche, each with an angle.', C: (p) => React.createElement(AiTool, { id: "ideas", ph: "Your niche or channel type", initial: p.initial }) },
     { id: 'shots', kind: 'ai', name: 'Shot List Planner', icon: 'list', hue: 345, desc: 'Turn an idea into a shot-by-shot plan before you film.', C: (p) => React.createElement(AiTool, { id: "shots", ph: "Describe your video idea", initial: p.initial }) },
 ];
+/* ---------- APP ---------- */
 function App() {
     const [active, setActive] = useState(null);
     const [user, setUser] = useState(null);
@@ -1710,13 +1741,13 @@ function App() {
         const sb = await getSB();
         await sb.auth.signOut();
     }
-    catch (e) { } setUser(null); setActive(null); setProj(null); };
+    catch (e) { /* ignore */ } setUser(null); setActive(null); setProj(null); };
     useEffect(() => {
         let hint = /access_token|[?&]code=|type=recovery/.test(window.location.href);
         try {
             hint = hint || Object.keys(localStorage).some((k) => k.startsWith('sb-'));
         }
-        catch (e) { }
+        catch (e) { /* storage blocked */ }
         if (hint)
             initAuth();
     }, []);
@@ -1828,6 +1859,7 @@ function App() {
         toast && React.createElement("div", { className: "glass fixed bottom-5 left-1/2 z-[70] max-w-[90vw] -translate-x-1/2 rounded-xl px-4 py-3 text-sm font-semibold text-accent", role: "status" }, toast)));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
+
 </script>
 </body>
 </html>
