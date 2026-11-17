@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0b0d1e">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FDE047'/><stop offset='1' stop-color='%23F59E0B'/></linearGradient></defs><rect width='48' height='48' rx='13' fill='url(%23g)'/><polygon points='19,13 19,33 35,23' fill='%2312142F' stroke='%2312142F' stroke-width='3' stroke-linejoin='round'/><rect x='10' y='39' width='28' height='3' rx='1.5' fill='%2312142F'/></svg>">
 <title>ClipMed — Tools for video editors</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <script>
@@ -17,39 +16,18 @@
   :focus-visible { outline: 2px solid #FACC15; outline-offset: 2px; }
   input[type=range] { accent-color: #FACC15; width: 100%; }
   .noscroll::-webkit-scrollbar { display: none; }
-  body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background:
-      radial-gradient(900px 520px at 8% -8%, rgba(99,102,241,.30), transparent 60%),
-      radial-gradient(640px 420px at 100% 4%, rgba(250,204,21,.13), transparent 60%),
-      radial-gradient(820px 600px at 50% 112%, rgba(168,85,247,.24), transparent 60%),
-      linear-gradient(180deg, #0b0d1e 0%, #0d1030 55%, #0a0b1c 100%); }
-  .glass { background: rgba(27,30,71,.5); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,.1); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 40px -16px rgba(0,0,0,.6); }
-  .glow { transition: box-shadow .25s, border-color .25s; }
-  .glow:hover, .glow:focus-within { border-color: rgba(250,204,21,.45); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 0 34px -6px rgba(250,204,21,.35); }
-  .neon { box-shadow: 0 0 22px -4px rgba(250,204,21,.6), inset 0 1px 0 rgba(255,255,255,.35); transition: box-shadow .25s, filter .25s; }
-  .neon:hover { box-shadow: 0 0 34px -2px rgba(250,204,21,.8), inset 0 1px 0 rgba(255,255,255,.4); }
-  .shimmer { background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(250,204,21,.2) 50%, rgba(255,255,255,.05) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
-  @keyframes shimmer { to { background-position: -200% 0; } }
-  @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-  @keyframes sweep { to { transform: translateX(350%); } }
-  .badge { position: relative; overflow: hidden; animation: floaty 3.6s ease-in-out infinite; }
-  .badge::after { content: ''; position: absolute; inset: 0; width: 35%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent); transform: translateX(-120%); animation: sweep 3.2s ease-in-out infinite; }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
 </head>
 <body class="min-h-screen">
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useMemo, useRef, useEffect } = React;
 
-/* ---------- CONFIG ---------- */
 const AI_ENDPOINT = '/api/ai';
 
-/* ---------- ICONS (inline, no library) ---------- */
 const P = {
   search: <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
   back: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
@@ -75,7 +53,6 @@ const Icon = ({ n, s = 18, c = '' }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c} aria-hidden="true">{P[n]}</svg>
 );
 
-/* ---------- LANGUAGES (en / fr / ar) ---------- */
 const NAMES = { en: 'English', fr: 'Français', ar: 'العربية' };
 let LANG = 'en';
 const tr = (k) => (I18N[LANG] && I18N[LANG][k]) || k;
@@ -93,29 +70,14 @@ const I18N = {
     'Use HH:MM:SS:FF': `Utilisez HH:MM:SS:FF`, 'frames': `images`, 'Speed change': `Changement de vitesse`,
     'Clip length (seconds)': `Durée du clip (secondes)`, 'Speed': `Vitesse`, 'New length': `Nouvelle durée`,
     'Reset': `Réinitialiser`, 'Where to cut': `Où couper`, 'Every beat': `À chaque temps`, 'Every 2 beats': `Tous les 2 temps`, 'Every bar (4 beats)': `Toutes les mesures (4 temps)`,
-    'Tap along to the song at least twice. Then cut your clips on these intervals so edits land on the beat.': `Tapez en rythme avec la musique au moins deux fois. Coupez ensuite vos clips à ces intervalles pour que les coupes tombent sur le temps.`,
     'Generate': `Générer`, 'Working...': `En cours...`, 'Enter a topic first.': `Saisissez d'abord un sujet.`, 'Something went wrong. Try again.': `Une erreur est survenue. Réessayez.`,
     'What is your video about?': `De quoi parle votre vidéo ?`, 'Video topic': `Sujet de la vidéo`, 'Main keyword': `Mot-clé principal`, 'Describe your video idea': `Décrivez votre idée de vidéo`,
     'Color Grader': `Étalonnage couleur`, 'Aspect Ratio & Safe Zones': `Format d'image et zones de sécurité`, 'Timecode & Speed': `Timecode et vitesse`, 'Tap BPM': `BPM au rythme`,
     'Hook Writer': `Rédacteur d'accroches`, 'Title Generator': `Générateur de titres`, 'Hashtag Finder': `Trouveur de hashtags`, 'Shot List Planner': `Plan de tournage`,
-    'Preview looks on your own clip or image and save a graded frame.': `Testez des looks sur votre clip ou image et enregistrez une image étalonnée.`,
-    'Export sizes for every platform, with safe-zone guides.': `Les tailles d'export pour chaque plateforme, avec guides de zones de sécurité.`,
-    'Convert frames to timecode and work out new clip lengths.': `Convertissez des images en timecode et calculez la nouvelle durée des clips.`,
-    "Find a song's tempo and the beat intervals to cut on.": `Trouvez le tempo d'une musique et les intervalles où couper.`,
-    'Opening lines that stop the scroll in the first 3 seconds.': `Des phrases d'ouverture qui arrêtent le scroll dès les 3 premières secondes.`,
-    'Clear, clickable titles for your videos.': `Des titres clairs et accrocheurs pour vos vidéos.`,
-    'A ready set of hashtags for Shorts, Reels and TikTok.': `Un jeu de hashtags prêt pour Shorts, Reels et TikTok.`,
-    'Turn an idea into a shot-by-shot plan before you film.': `Transformez une idée en plan plan par plan avant de tourner.`,
     'Edit faster with tools that work right here.': `Montez plus vite avec des outils qui fonctionnent ici même.`,
-    'Grade footage, size your export, design thumbnails, and write scripts, hooks and captions with AI. No downloads, no sign-up.': `Étalonnez vos images, choisissez le bon format d'export, créez vos miniatures et écrivez scripts, accroches et légendes avec l'IA. Aucun téléchargement, aucune inscription.`,
+    'Grade footage, size your export, cut to the beat, and plan your next video with AI. No downloads, no sign-up.': `Étalonnez vos images, choisissez le bon format d'export, coupez en rythme et planifiez votre prochaine vidéo avec l'IA. Aucun téléchargement, aucune inscription.`,
     'Search tools...': `Rechercher un outil...`, 'Search tools': `Rechercher un outil`, 'Editing tools': `Outils de montage`, 'AI tools': `Outils IA`,
-    'AI tool': `Outil IA`, 'Editing tool': `Outil de montage`, 'Open tool': `Ouvrir l'outil`, 'Powered by Gemini AI': `Propulsé par Gemini AI`, '100% Free': `100 % gratuit`, 'AI is thinking': `L'IA réfléchit`,
-    'Thumbnail Maker': `Créateur de miniatures`, 'Make a 1280×720 thumbnail with big text over any image.': `Créez une miniature 1280×720 avec un grand texte sur n'importe quelle image.`,
-    'Script Writer': `Rédacteur de scripts`, 'A full short-video script with hook, key points and call to action.': `Un script complet pour vidéo courte : accroche, points clés et appel à l'action.`,
-    'Caption & Hashtags': `Légendes et hashtags`, 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.': `Des légendes prêtes à publier avec hashtags pour TikTok, Reels et Shorts.`,
-    'Video Idea Generator': `Générateur d'idées de vidéos`, 'Fresh video ideas for your niche, each with an angle.': `Des idées de vidéos pour votre niche, chacune avec un angle.`,
-    'Your niche or channel type': `Votre niche ou type de chaîne`, 'Choose an image': `Choisir une image`, 'Thumbnail text': `Texte de la miniature`, 'Text size': `Taille du texte`,
-    'Top': `Haut`, 'Center': `Centre`, 'Bottom': `Bas`, 'Darken background': `Assombrir l'arrière-plan`, 'Download thumbnail (PNG)': `Télécharger la miniature (PNG)`, 'No tool matches that search. Try another word.': `Aucun outil ne correspond. Essayez un autre mot.`,
+    'AI tool': `Outil IA`, 'Editing tool': `Outil de montage`, 'Open tool': `Ouvrir l'outil`, 'No tool matches that search. Try another word.': `Aucun outil ne correspond. Essayez un autre mot.`,
   },
   ar: {
     'All tools': `كل الأدوات`, 'Choose a video or image': `اختر فيديو أو صورة`,
@@ -130,30 +92,14 @@ const I18N = {
     'Use HH:MM:SS:FF': `استخدم الصيغة HH:MM:SS:FF`, 'frames': `إطار`, 'Speed change': `تغيير السرعة`,
     'Clip length (seconds)': `مدة المقطع (بالثواني)`, 'Speed': `السرعة`, 'New length': `المدة الجديدة`, 'TAP': `انقر`,
     'Reset': `إعادة ضبط`, 'Where to cut': `أين تقطع`, 'Every beat': `عند كل نبضة`, 'Every 2 beats': `كل نبضتين`, 'Every bar (4 beats)': `كل مازورة (4 نبضات)`,
-    'Tap along to the song at least twice. Then cut your clips on these intervals so edits land on the beat.': `انقر مع الأغنية مرتين على الأقل. ثم اقطع مقاطعك على هذه الفواصل لتأتي القطعات على الإيقاع.`,
     'Generate': `توليد`, 'Working...': `جارٍ العمل...`, 'Enter a topic first.': `أدخل موضوعًا أولًا.`, 'Something went wrong. Try again.': `حدث خطأ. حاول مرة أخرى.`,
     'What is your video about?': `ما موضوع الفيديو؟`, 'Video topic': `موضوع الفيديو`, 'Main keyword': `الكلمة المفتاحية الرئيسية`, 'Describe your video idea': `صف فكرة الفيديو`,
     'Color Grader': `تدرّج الألوان`, 'Aspect Ratio & Safe Zones': `أبعاد الفيديو والمناطق الآمنة`, 'Timecode & Speed': `التايم كود والسرعة`, 'Tap BPM': `قياس الإيقاع بالنقر`,
     'Hook Writer': `كاتب الافتتاحيات`, 'Title Generator': `مولّد العناوين`, 'Hashtag Finder': `باحث الهاشتاغات`, 'Shot List Planner': `مخطط اللقطات`,
-    'Preview looks on your own clip or image and save a graded frame.': `جرّب أنماط الألوان على مقطعك أو صورتك واحفظ إطارًا بعد التدرّج.`,
-    'Export sizes for every platform, with safe-zone guides.': `مقاسات التصدير لكل منصة مع أدلة المناطق الآمنة.`,
-    'Convert frames to timecode and work out new clip lengths.': `حوّل الإطارات إلى تايم كود واحسب مدة المقطع الجديدة.`,
-    "Find a song's tempo and the beat intervals to cut on.": `اعرف إيقاع الأغنية والفواصل المناسبة للقطع.`,
-    'Opening lines that stop the scroll in the first 3 seconds.': `جمل افتتاحية توقف التمرير في أول 3 ثوانٍ.`,
-    'Clear, clickable titles for your videos.': `عناوين واضحة وجذابة لفيديوهاتك.`,
-    'A ready set of hashtags for Shorts, Reels and TikTok.': `مجموعة هاشتاغات جاهزة لشورتس وريلز وتيك توك.`,
-    'Turn an idea into a shot-by-shot plan before you film.': `حوّل الفكرة إلى خطة لقطة بلقطة قبل التصوير.`,
     'Edit faster with tools that work right here.': `قم بالمونتاج أسرع بأدوات تعمل هنا مباشرة.`,
     'Grade footage, size your export, cut to the beat, and plan your next video with AI. No downloads, no sign-up.': `لوّن لقطاتك، واختر مقاس التصدير، واقطع على الإيقاع، وخطّط لفيديوك القادم بالذكاء الاصطناعي. بدون تحميل وبدون تسجيل.`,
     'Search tools...': `ابحث عن أداة...`, 'Search tools': `ابحث عن أداة`, 'Editing tools': `أدوات المونتاج`, 'AI tools': `أدوات الذكاء الاصطناعي`,
     'AI tool': `أداة ذكاء اصطناعي`, 'Editing tool': `أداة مونتاج`, 'Open tool': `افتح الأداة`, 'No tool matches that search. Try another word.': `لا توجد أداة مطابقة. جرّب كلمة أخرى.`,
-    'Powered by Gemini AI': `مدعوم بـ Gemini AI`, '100% Free': `مجاني 100%`, 'AI is thinking': `الذكاء الاصطناعي يفكر`,
-    'Thumbnail Maker': `صانع الصور المصغّرة`, 'Make a 1280×720 thumbnail with big text over any image.': `اصنع صورة مصغّرة 1280×720 بنص كبير فوق أي صورة.`,
-    'Script Writer': `كاتب السكريبت`, 'A full short-video script with hook, key points and call to action.': `سكريبت كامل لفيديو قصير: افتتاحية ونقاط رئيسية ودعوة لاتخاذ إجراء.`,
-    'Caption & Hashtags': `الوصف والهاشتاغات`, 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.': `أوصاف جاهزة للنشر مع هاشتاغات لتيك توك وريلز وشورتس.`,
-    'Video Idea Generator': `مولّد أفكار الفيديو`, 'Fresh video ideas for your niche, each with an angle.': `أفكار فيديوهات جديدة لمجالك، كل فكرة بزاوية مختلفة.`,
-    'Your niche or channel type': `مجالك أو نوع قناتك`, 'Choose an image': `اختر صورة`, 'Thumbnail text': `نص الصورة المصغّرة`, 'Text size': `حجم النص`,
-    'Top': `أعلى`, 'Center': `الوسط`, 'Bottom': `أسفل`, 'Darken background': `تعتيم الخلفية`, 'Download thumbnail (PNG)': `تحميل الصورة المصغّرة (PNG)`,
   },
 };
 
@@ -161,12 +107,12 @@ function LangPicker({ onPick }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-[#0b0d1e] px-5" role="dialog" aria-modal="true" aria-label="Language">
       <div className="w-full max-w-sm py-10 text-center">
-        <span className="mx-auto mb-5 block w-fit"><Logo s={64} /></span>
+        <span className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-accent text-ink"><Icon n="video" s={28} /></span>
         <h1 className="text-3xl font-extrabold tracking-tight">ClipMed</h1>
         <p className="mt-3 leading-7 text-gray-400">Choose your language<br />Choisissez votre langue<br /><span dir="rtl">اختر لغتك</span></p>
         <div className="mt-8 space-y-3">
           {Object.entries(NAMES).map(([k, n]) => (
-            <button key={k} onClick={() => onPick(k)} className="w-full rounded-2xl glass glow py-4 text-lg font-bold hover:border-accent hover:text-accent">{n}</button>
+            <button key={k} onClick={() => onPick(k)} className="w-full rounded-2xl border border-white/15 bg-slate-800 py-4 text-lg font-bold hover:border-accent hover:text-accent">{n}</button>
           ))}
         </div>
       </div>
@@ -174,49 +120,24 @@ function LangPicker({ onPick }) {
   );
 }
 
-/* ---------- GENERATED ARTWORK ---------- */
-const Logo = ({ s = 40 }) => (
-  <svg width={s} height={s} viewBox="0 0 48 48" aria-hidden="true" style={{ filter: 'drop-shadow(0 0 10px rgba(250,204,21,.45))' }}>
-    <defs><linearGradient id={`lg${s}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FDE047" /><stop offset="1" stopColor="#F59E0B" /></linearGradient></defs>
-    <rect width="48" height="48" rx="13" fill={`url(#lg${s})`} />
-    <polygon points="19,13 19,33 35,23" fill="#12142F" stroke="#12142F" strokeWidth="3" strokeLinejoin="round" />
-    <rect x="10" y="39" width="28" height="3" rx="1.5" fill="#12142F" />
-    <rect x="30" y="36" width="3" height="9" rx="1.5" fill="#12142F" />
-    <path d="M38 8l1.4 3.6L43 13l-3.6 1.4L38 18l-1.4-3.6L33 13l3.6-1.4z" fill="#fff" opacity=".9" />
-  </svg>
-);
-
-const ART = {
-  grade: (h) => <><circle cx="84" cy="46" r="24" fill={`hsl(${h} 90% 60%)`} opacity=".85" /><circle cx="108" cy="46" r="24" fill="#FACC15" opacity=".8" /><circle cx="96" cy="66" r="24" fill="#3DDBD9" opacity=".8" />
-    {[22, 46, 70].map((y, i) => <g key={y}><rect x="150" y={y} width="30" height="5" rx="2.5" fill="#fff" opacity=".6" /><circle cx={158 + i * 6} cy={y + 2.5} r="5" fill="#FACC15" /></g>)}</>,
-  aspect: () => <><rect x="30" y="14" width="34" height="72" rx="5" fill="none" stroke="#FACC15" strokeWidth="2.5" /><rect x="36" y="20" width="22" height="60" rx="3" fill="none" stroke="#FACC15" strokeDasharray="3 3" opacity=".6" />
-    <rect x="76" y="28" width="64" height="36" rx="5" fill="none" stroke="#fff" strokeWidth="2.5" opacity=".85" /><rect x="152" y="32" width="28" height="28" rx="5" fill="none" stroke="#3DDBD9" strokeWidth="2.5" /></>,
-  thumb: (h) => <><rect x="34" y="16" width="132" height="68" rx="8" fill="#0b0d1e" opacity=".55" stroke="#fff" strokeOpacity=".5" strokeWidth="2" /><polygon points="34,84 70,46 94,70 116,54 166,84" fill={`hsl(${h} 70% 45%)`} opacity=".9" />
-    <circle cx="142" cy="34" r="8" fill="#FACC15" /><rect x="46" y="22" width="60" height="9" rx="3" fill="#FACC15" /><rect x="46" y="35" width="40" height="9" rx="3" fill="#fff" /></>,
-  script: () => <><rect x="62" y="12" width="76" height="78" rx="7" fill="#fff" opacity=".93" /><rect x="72" y="24" width="40" height="6" rx="3" fill="#12142F" />
-    {[38, 48, 58].map((y) => <rect key={y} x="72" y={y} width="54" height="4" rx="2" fill="#12142F" opacity=".35" />)}<rect x="72" y="68" width="30" height="4" rx="2" fill="#FACC15" /><rect x="106" y="65" width="2.5" height="10" fill="#12142F" /></>,
-  hooks: () => <><polygon points="100,8 70,54 94,54 86,92 128,40 102,40" fill="#FACC15" /><path d="M150 24v34a14 14 0 0 1-28 0" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" opacity=".85" /><circle cx="150" cy="22" r="4" fill="#fff" opacity=".85" /></>,
-  titles: () => <><rect x="30" y="22" width="140" height="24" rx="6" fill="#fff" opacity=".92" /><text x="40" y="40" fontSize="15" fontWeight="800" fill="#12142F" fontFamily="sans-serif">How I Edit Like a Pro</text>
-    <rect x="30" y="54" width="100" height="14" rx="5" fill="#FACC15" /><rect x="30" y="74" width="70" height="8" rx="4" fill="#fff" opacity=".4" /></>,
-  captions: () => <><rect x="34" y="14" width="110" height="56" rx="14" fill="#fff" opacity=".93" /><polygon points="58,70 58,86 76,70" fill="#fff" opacity=".93" /><rect x="46" y="28" width="70" height="6" rx="3" fill="#12142F" />
-    <rect x="46" y="40" width="86" height="5" rx="2.5" fill="#12142F" opacity=".35" /><rect x="46" y="51" width="50" height="5" rx="2.5" fill="#12142F" opacity=".35" /><text x="152" y="64" fontSize="42" fontWeight="800" fill="#FACC15" fontFamily="sans-serif">#</text></>,
-  ideas: () => <><circle cx="100" cy="42" r="24" fill="#FACC15" /><rect x="90" y="64" width="20" height="8" rx="3" fill="#fff" opacity=".85" /><rect x="93" y="74" width="14" height="6" rx="3" fill="#fff" opacity=".6" />
-    <g stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity=".7"><line x1="100" y1="6" x2="100" y2="12" /><line x1="64" y1="42" x2="58" y2="42" /><line x1="136" y1="42" x2="142" y2="42" /><line x1="74" y1="16" x2="70" y2="12" /><line x1="126" y1="16" x2="130" y2="12" /></g></>,
-  shots: (h) => <>{[0, 1, 2].flatMap((c) => [0, 1].map((r) => <rect key={`${c}${r}`} x={34 + c * 46} y={16 + r * 38} width="40" height="32" rx="5" fill={`hsl(${h + (c + r * 3) * 28} 75% 55%)`} opacity=".88" />))}<polygon points="48,28 48,42 60,35" fill="#fff" opacity=".85" /></>,
+const Cover = ({ hue, kind, seed }) => {
+  const id = 'g' + seed;
+  return (
+    <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
+      <defs><linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor={`hsl(${hue} 65% 24%)`} /><stop offset="1" stopColor={`hsl(${hue + 55} 70% 11%)`} />
+      </linearGradient></defs>
+      <rect width="200" height="100" fill={`url(#${id})`} />
+      {kind === 'edit'
+        ? [0, 1, 2, 3].map((i) => <rect key={i} x={8 + ((seed * 37 + i * 53) % 70)} y={14 + i * 20} width={40 + ((seed * 17 + i * 31) % 70)} height="12" rx="4" fill={`hsl(${hue + i * 22} 90% 62%)`} opacity=".85" />)
+        : Array.from({ length: 34 }, (_, i) => { const h = 8 + Math.abs(Math.sin(i * 0.55 + seed)) * 46; return <rect key={i} x={10 + i * 5.5} y={50 - h / 2} width="3" height={h} rx="1.5" fill={`hsl(${hue + i * 3} 90% 65%)`} opacity=".85" />; })}
+      {kind === 'edit' && <line x1={110 + seed * 6} y1="4" x2={110 + seed * 6} y2="96" stroke="#FACC15" strokeWidth="1.5" />}
+    </svg>
+  );
 };
-const Cover = ({ id, hue }) => (
-  <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
-    <defs>
-      <linearGradient id={`cg-${id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={`hsl(${hue} 65% 26%)`} /><stop offset="1" stopColor={`hsl(${hue + 55} 70% 10%)`} /></linearGradient>
-      <radialGradient id={`cr-${id}`} cx=".5" cy=".45" r=".6"><stop offset="0" stopColor={`hsl(${hue} 90% 60%)`} stopOpacity=".35" /><stop offset="1" stopOpacity="0" /></radialGradient>
-    </defs>
-    <rect width="200" height="100" fill={`url(#cg-${id})`} /><rect width="200" height="100" fill={`url(#cr-${id})`} />
-    {ART[id](hue)}
-  </svg>
-);
 
 const HeroArt = () => (
-  <svg viewBox="0 0 400 220" className="w-full rounded-3xl border border-white/10 bg-panel shadow-[0_0_60px_-12px_rgba(250,204,21,.28)]" aria-hidden="true">
+  <svg viewBox="0 0 400 220" className="w-full rounded-3xl border border-white/10 bg-slate-900" aria-hidden="true">
     <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#2a2370" /><stop offset="1" stopColor="#0f1233" /></linearGradient></defs>
     <rect width="400" height="220" fill="url(#hg)" />
     {[...Array(40)].map((_, i) => <line key={i} x1={10 + i * 10} y1="14" x2={10 + i * 10} y2={i % 5 === 0 ? 28 : 21} stroke="#4a4fa0" />)}
@@ -227,13 +148,11 @@ const HeroArt = () => (
   </svg>
 );
 
-/* ---------- SHARED UI ---------- */
-const inp = 'w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-400 backdrop-blur-md focus:border-accent focus:outline-none focus:shadow-[0_0_20px_-4px_rgba(250,204,21,.5)]';
-const btn = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 font-bold text-ink hover:brightness-110 disabled:opacity-60 neon';
-const ghost = 'inline-flex items-center justify-center gap-2 rounded-xl glass px-4 py-2.5 text-sm font-semibold text-gray-300 hover:border-accent/50 hover:text-white';
-const Card = ({ children, className = '' }) => <div className={`rounded-2xl glass glow p-5 ${className}`}>{children}</div>;
+const inp = 'w-full rounded-xl border border-white/15 bg-slate-900 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-accent';
+const btn = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 font-bold text-ink hover:brightness-110 disabled:opacity-60';
+const ghost = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-gray-300 hover:border-white/30';
+const Card = ({ children, className = '' }) => <div className={`rounded-2xl border border-white/15 bg-slate-900/90 p-5 ${className}`}>{children}</div>;
 
-/* ---------- EDITING TOOLS ---------- */
 const BASE = { b: 100, c: 100, s: 100, h: 0, sep: 0, blur: 0 };
 const LOOKS = {
   Original: {}, Cinematic: { b: 95, c: 120, s: 90, h: -6, sep: 12 }, Vivid: { b: 105, c: 115, s: 150 },
@@ -288,4 +207,49 @@ function ColorGrader() {
             <span className="flex justify-between"><span>{tr(label)}</span><span className="text-gray-400">{v[k]}</span></span>
             <input type="range" min={min} max={max} value={v[k]} onChange={(e) => setV({ ...v, [k]: +e.target.value })} />
           </label>
-        
+        ))}
+        <button onClick={capture} disabled={!file} className={`${btn} w-full`}><Icon n="camera" /> {tr('Save graded frame (PNG)')}</button>
+        <p className="text-xs text-gray-400">{tr('Your file stays on your device. Nothing is uploaded.')}</p>
+      </Card>
+    </div>
+  );
+}
+
+const RATIOS = [
+  { n: '9:16', w: 1080, h: 1920, u: 'TikTok, Reels, Shorts' }, { n: '16:9', w: 1920, h: 1080, u: 'YouTube, landscape' },
+  { n: '1:1', w: 1080, h: 1080, u: 'Square feed post' }, { n: '4:5', w: 1080, h: 1350, u: 'Instagram portrait' }, { n: '21:9', w: 2560, h: 1097, u: 'Cinematic widescreen' },
+];
+function AspectTool() {
+  const [r, setR] = useState(RATIOS[0]);
+  const [cw, setCw] = useState(1080);
+  const tall = r.h >= r.w;
+  return (
+    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <Card className="grid h-80 place-items-center">
+        <div className="relative bg-ink ring-1 ring-white/20" style={{ aspectRatio: `${r.w}/${r.h}`, height: tall ? '100%' : 'auto', width: tall ? 'auto' : '100%', maxWidth: '100%' }}>
+          <div className="absolute inset-[5%] border border-dashed border-accent/80" />
+          <div className="absolute inset-[10%] border border-dashed border-white/50" />
+          {r.n === '9:16' && <div className="absolute inset-x-0 bottom-0 grid h-[18%] place-items-center bg-red-500/20 text-[10px] text-red-200">{tr('App buttons zone')}</div>}
+        </div>
+      </Card>
+      <Card className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {RATIOS.map((x) => <button key={x.n} onClick={() => setR(x)} aria-pressed={r.n === x.n} className={`${ghost} ${r.n === x.n ? '!border-accent !text-accent' : ''}`}>{x.n}</button>)}
+        </div>
+        <p className="text-sm text-gray-300">{tr(r.u)}<br /><span className="text-lg font-bold text-white">{r.w} × {r.h}</span></p>
+        <label className="block text-sm text-gray-300">{tr('Custom width (px)')}
+          <input type="number" min="1" value={cw} onChange={(e) => setCw(+e.target.value)} className={`${inp} mt-1`} /></label>
+        <p className="text-sm text-gray-300">{tr('Height at')} {r.n}: <b className="text-white">{Math.round((cw * r.h) / r.w) || 0}px</b></p>
+        <p className="text-xs text-gray-400">{tr('Yellow line: action safe (90%). White line: title safe (80%).')}</p>
+      </Card>
+    </div>
+  );
+}
+
+const toTC = (f, fps) => { const s = Math.floor(f / fps); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f % fps].map((n) => String(n).padStart(2, '0')).join(':'); };
+const fromTC = (t, fps) => { const p = t.split(':').map(Number); return p.length === 4 && !p.some(isNaN) ? ((p[0] * 60 + p[1]) * 60 + p[2]) * fps + p[3] : null; };
+function TimecodeTool() {
+  const [fps, setFps] = useState(30);
+  const [frames, setFrames] = useState(450);
+  const [tc, setTc] = useState('00:00:15:00');
+  
