@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0b0d1e">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FDE047'/><stop offset='1' stop-color='%23F59E0B'/></linearGradient></defs><rect width='48' height='48' rx='13' fill='url(%23g)'/><polygon points='19,13 19,33 35,23' fill='%2312142F' stroke='%2312142F' stroke-width='3' stroke-linejoin='round'/><rect x='10' y='39' width='28' height='3' rx='1.5' fill='%2312142F'/></svg>">
 <title>ClipMed — Tools for video editors</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <script>
@@ -16,6 +17,25 @@
   :focus-visible { outline: 2px solid #FACC15; outline-offset: 2px; }
   input[type=range] { accent-color: #FACC15; width: 100%; }
   .noscroll::-webkit-scrollbar { display: none; }
+  body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(900px 520px at 8% -8%, rgba(99,102,241,.30), transparent 60%),
+      radial-gradient(640px 420px at 100% 4%, rgba(250,204,21,.13), transparent 60%),
+      radial-gradient(820px 600px at 50% 112%, rgba(168,85,247,.24), transparent 60%),
+      linear-gradient(180deg, #0b0d1e 0%, #0d1030 55%, #0a0b1c 100%); }
+  .glass { background: rgba(27,30,71,.5); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,.1); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 40px -16px rgba(0,0,0,.6); }
+  .glow { transition: box-shadow .25s, border-color .25s; }
+  .glow:hover, .glow:focus-within { border-color: rgba(250,204,21,.45); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 0 34px -6px rgba(250,204,21,.35); }
+  .neon { box-shadow: 0 0 22px -4px rgba(250,204,21,.6), inset 0 1px 0 rgba(255,255,255,.35); transition: box-shadow .25s, filter .25s; }
+  .neon:hover { box-shadow: 0 0 34px -2px rgba(250,204,21,.8), inset 0 1px 0 rgba(255,255,255,.4); }
+  .shimmer { background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(250,204,21,.2) 50%, rgba(255,255,255,.05) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  @keyframes sweep { to { transform: translateX(350%); } }
+  .badge { position: relative; overflow: hidden; animation: floaty 3.6s ease-in-out infinite; }
+  .badge::after { content: ''; position: absolute; inset: 0; width: 35%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent); transform: translateX(-120%); animation: sweep 3.2s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
@@ -26,8 +46,10 @@
 <script type="text/babel">
 const { useState, useMemo, useRef, useEffect } = React;
 
+/* ---------- CONFIG ---------- */
 const AI_ENDPOINT = '/api/ai';
 
+/* ---------- ICONS (inline, no library) ---------- */
 const P = {
   search: <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
   back: <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
@@ -53,6 +75,7 @@ const Icon = ({ n, s = 18, c = '' }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c} aria-hidden="true">{P[n]}</svg>
 );
 
+/* ---------- LANGUAGES (en / fr / ar) ---------- */
 const NAMES = { en: 'English', fr: 'Français', ar: 'العربية' };
 let LANG = 'en';
 const tr = (k) => (I18N[LANG] && I18N[LANG][k]) || k;
@@ -70,14 +93,29 @@ const I18N = {
     'Use HH:MM:SS:FF': `Utilisez HH:MM:SS:FF`, 'frames': `images`, 'Speed change': `Changement de vitesse`,
     'Clip length (seconds)': `Durée du clip (secondes)`, 'Speed': `Vitesse`, 'New length': `Nouvelle durée`,
     'Reset': `Réinitialiser`, 'Where to cut': `Où couper`, 'Every beat': `À chaque temps`, 'Every 2 beats': `Tous les 2 temps`, 'Every bar (4 beats)': `Toutes les mesures (4 temps)`,
+    'Tap along to the song at least twice. Then cut your clips on these intervals so edits land on the beat.': `Tapez en rythme avec la musique au moins deux fois. Coupez ensuite vos clips à ces intervalles pour que les coupes tombent sur le temps.`,
     'Generate': `Générer`, 'Working...': `En cours...`, 'Enter a topic first.': `Saisissez d'abord un sujet.`, 'Something went wrong. Try again.': `Une erreur est survenue. Réessayez.`,
     'What is your video about?': `De quoi parle votre vidéo ?`, 'Video topic': `Sujet de la vidéo`, 'Main keyword': `Mot-clé principal`, 'Describe your video idea': `Décrivez votre idée de vidéo`,
     'Color Grader': `Étalonnage couleur`, 'Aspect Ratio & Safe Zones': `Format d'image et zones de sécurité`, 'Timecode & Speed': `Timecode et vitesse`, 'Tap BPM': `BPM au rythme`,
     'Hook Writer': `Rédacteur d'accroches`, 'Title Generator': `Générateur de titres`, 'Hashtag Finder': `Trouveur de hashtags`, 'Shot List Planner': `Plan de tournage`,
+    'Preview looks on your own clip or image and save a graded frame.': `Testez des looks sur votre clip ou image et enregistrez une image étalonnée.`,
+    'Export sizes for every platform, with safe-zone guides.': `Les tailles d'export pour chaque plateforme, avec guides de zones de sécurité.`,
+    'Convert frames to timecode and work out new clip lengths.': `Convertissez des images en timecode et calculez la nouvelle durée des clips.`,
+    "Find a song's tempo and the beat intervals to cut on.": `Trouvez le tempo d'une musique et les intervalles où couper.`,
+    'Opening lines that stop the scroll in the first 3 seconds.': `Des phrases d'ouverture qui arrêtent le scroll dès les 3 premières secondes.`,
+    'Clear, clickable titles for your videos.': `Des titres clairs et accrocheurs pour vos vidéos.`,
+    'A ready set of hashtags for Shorts, Reels and TikTok.': `Un jeu de hashtags prêt pour Shorts, Reels et TikTok.`,
+    'Turn an idea into a shot-by-shot plan before you film.': `Transformez une idée en plan plan par plan avant de tourner.`,
     'Edit faster with tools that work right here.': `Montez plus vite avec des outils qui fonctionnent ici même.`,
-    'Grade footage, size your export, cut to the beat, and plan your next video with AI. No downloads, no sign-up.': `Étalonnez vos images, choisissez le bon format d'export, coupez en rythme et planifiez votre prochaine vidéo avec l'IA. Aucun téléchargement, aucune inscription.`,
+    'Grade footage, size your export, design thumbnails, and write scripts, hooks and captions with AI. No downloads, no sign-up.': `Étalonnez vos images, choisissez le bon format d'export, créez vos miniatures et écrivez scripts, accroches et légendes avec l'IA. Aucun téléchargement, aucune inscription.`,
     'Search tools...': `Rechercher un outil...`, 'Search tools': `Rechercher un outil`, 'Editing tools': `Outils de montage`, 'AI tools': `Outils IA`,
-    'AI tool': `Outil IA`, 'Editing tool': `Outil de montage`, 'Open tool': `Ouvrir l'outil`, 'No tool matches that search. Try another word.': `Aucun outil ne correspond. Essayez un autre mot.`,
+    'AI tool': `Outil IA`, 'Editing tool': `Outil de montage`, 'Open tool': `Ouvrir l'outil`, 'Powered by Gemini AI': `Propulsé par Gemini AI`, '100% Free': `100 % gratuit`, 'AI is thinking': `L'IA réfléchit`,
+    'Thumbnail Maker': `Créateur de miniatures`, 'Make a 1280×720 thumbnail with big text over any image.': `Créez une miniature 1280×720 avec un grand texte sur n'importe quelle image.`,
+    'Script Writer': `Rédacteur de scripts`, 'A full short-video script with hook, key points and call to action.': `Un script complet pour vidéo courte : accroche, points clés et appel à l'action.`,
+    'Caption & Hashtags': `Légendes et hashtags`, 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.': `Des légendes prêtes à publier avec hashtags pour TikTok, Reels et Shorts.`,
+    'Video Idea Generator': `Générateur d'idées de vidéos`, 'Fresh video ideas for your niche, each with an angle.': `Des idées de vidéos pour votre niche, chacune avec un angle.`,
+    'Your niche or channel type': `Votre niche ou type de chaîne`, 'Choose an image': `Choisir une image`, 'Thumbnail text': `Texte de la miniature`, 'Text size': `Taille du texte`,
+    'Top': `Haut`, 'Center': `Centre`, 'Bottom': `Bas`, 'Darken background': `Assombrir l'arrière-plan`, 'Download thumbnail (PNG)': `Télécharger la miniature (PNG)`, 'No tool matches that search. Try another word.': `Aucun outil ne correspond. Essayez un autre mot.`,
   },
   ar: {
     'All tools': `كل الأدوات`, 'Choose a video or image': `اختر فيديو أو صورة`,
@@ -92,14 +130,29 @@ const I18N = {
     'Use HH:MM:SS:FF': `استخدم الصيغة HH:MM:SS:FF`, 'frames': `إطار`, 'Speed change': `تغيير السرعة`,
     'Clip length (seconds)': `مدة المقطع (بالثواني)`, 'Speed': `السرعة`, 'New length': `المدة الجديدة`, 'TAP': `انقر`,
     'Reset': `إعادة ضبط`, 'Where to cut': `أين تقطع`, 'Every beat': `عند كل نبضة`, 'Every 2 beats': `كل نبضتين`, 'Every bar (4 beats)': `كل مازورة (4 نبضات)`,
+    'Tap along to the song at least twice. Then cut your clips on these intervals so edits land on the beat.': `انقر مع الأغنية مرتين على الأقل. ثم اقطع مقاطعك على هذه الفواصل لتأتي القطعات على الإيقاع.`,
     'Generate': `توليد`, 'Working...': `جارٍ العمل...`, 'Enter a topic first.': `أدخل موضوعًا أولًا.`, 'Something went wrong. Try again.': `حدث خطأ. حاول مرة أخرى.`,
     'What is your video about?': `ما موضوع الفيديو؟`, 'Video topic': `موضوع الفيديو`, 'Main keyword': `الكلمة المفتاحية الرئيسية`, 'Describe your video idea': `صف فكرة الفيديو`,
     'Color Grader': `تدرّج الألوان`, 'Aspect Ratio & Safe Zones': `أبعاد الفيديو والمناطق الآمنة`, 'Timecode & Speed': `التايم كود والسرعة`, 'Tap BPM': `قياس الإيقاع بالنقر`,
     'Hook Writer': `كاتب الافتتاحيات`, 'Title Generator': `مولّد العناوين`, 'Hashtag Finder': `باحث الهاشتاغات`, 'Shot List Planner': `مخطط اللقطات`,
+    'Preview looks on your own clip or image and save a graded frame.': `جرّب أنماط الألوان على مقطعك أو صورتك واحفظ إطارًا بعد التدرّج.`,
+    'Export sizes for every platform, with safe-zone guides.': `مقاسات التصدير لكل منصة مع أدلة المناطق الآمنة.`,
+    'Convert frames to timecode and work out new clip lengths.': `حوّل الإطارات إلى تايم كود واحسب مدة المقطع الجديدة.`,
+    "Find a song's tempo and the beat intervals to cut on.": `اعرف إيقاع الأغنية والفواصل المناسبة للقطع.`,
+    'Opening lines that stop the scroll in the first 3 seconds.': `جمل افتتاحية توقف التمرير في أول 3 ثوانٍ.`,
+    'Clear, clickable titles for your videos.': `عناوين واضحة وجذابة لفيديوهاتك.`,
+    'A ready set of hashtags for Shorts, Reels and TikTok.': `مجموعة هاشتاغات جاهزة لشورتس وريلز وتيك توك.`,
+    'Turn an idea into a shot-by-shot plan before you film.': `حوّل الفكرة إلى خطة لقطة بلقطة قبل التصوير.`,
     'Edit faster with tools that work right here.': `قم بالمونتاج أسرع بأدوات تعمل هنا مباشرة.`,
-    'Grade footage, size your export, cut to the beat, and plan your next video with AI. No downloads, no sign-up.': `لوّن لقطاتك، واختر مقاس التصدير، واقطع على الإيقاع، وخطّط لفيديوك القادم بالذكاء الاصطناعي. بدون تحميل وبدون تسجيل.`,
+    'Grade footage, size your export, design thumbnails, and write scripts, hooks and captions with AI. No downloads, no sign-up.': `لوّن لقطاتك، واختر مقاس التصدير، وصمّم صورك المصغّرة، واكتب السكريبتات والافتتاحيات والأوصاف بالذكاء الاصطناعي. بدون تحميل وبدون تسجيل.`,
     'Search tools...': `ابحث عن أداة...`, 'Search tools': `ابحث عن أداة`, 'Editing tools': `أدوات المونتاج`, 'AI tools': `أدوات الذكاء الاصطناعي`,
-    'AI tool': `أداة ذكاء اصطناعي`, 'Editing tool': `أداة مونتاج`, 'Open tool': `افتح الأداة`, 'No tool matches that search. Try another word.': `لا توجد أداة مطابقة. جرّب كلمة أخرى.`,
+    'AI tool': `أداة ذكاء اصطناعي`, 'Editing tool': `أداة مونتاج`, 'Open tool': `افتح الأداة`, 'Powered by Gemini AI': `مدعوم بـ Gemini AI`, '100% Free': `مجاني 100%`, 'AI is thinking': `الذكاء الاصطناعي يفكر`,
+    'Thumbnail Maker': `صانع الصور المصغّرة`, 'Make a 1280×720 thumbnail with big text over any image.': `اصنع صورة مصغّرة 1280×720 بنص كبير فوق أي صورة.`,
+    'Script Writer': `كاتب السكريبت`, 'A full short-video script with hook, key points and call to action.': `سكريبت كامل لفيديو قصير: افتتاحية ونقاط رئيسية ودعوة لاتخاذ إجراء.`,
+    'Caption & Hashtags': `الوصف والهاشتاغات`, 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.': `أوصاف جاهزة للنشر مع هاشتاغات لتيك توك وريلز وشورتس.`,
+    'Video Idea Generator': `مولّد أفكار الفيديو`, 'Fresh video ideas for your niche, each with an angle.': `أفكار فيديوهات جديدة لمجالك، كل فكرة بزاوية مختلفة.`,
+    'Your niche or channel type': `مجالك أو نوع قناتك`, 'Choose an image': `اختر صورة`, 'Thumbnail text': `نص الصورة المصغّرة`, 'Text size': `حجم النص`,
+    'Top': `أعلى`, 'Center': `الوسط`, 'Bottom': `أسفل`, 'Darken background': `تعتيم الخلفية`, 'Download thumbnail (PNG)': `تحميل الصورة المصغّرة (PNG)`, 'No tool matches that search. Try another word.': `لا توجد أداة مطابقة. جرّب كلمة أخرى.`,
   },
 };
 
@@ -107,12 +160,12 @@ function LangPicker({ onPick }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-[#0b0d1e] px-5" role="dialog" aria-modal="true" aria-label="Language">
       <div className="w-full max-w-sm py-10 text-center">
-        <span className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-accent text-ink"><Icon n="video" s={28} /></span>
+        <span className="mx-auto mb-5 block w-fit"><Logo s={64} /></span>
         <h1 className="text-3xl font-extrabold tracking-tight">ClipMed</h1>
         <p className="mt-3 leading-7 text-gray-400">Choose your language<br />Choisissez votre langue<br /><span dir="rtl">اختر لغتك</span></p>
         <div className="mt-8 space-y-3">
           {Object.entries(NAMES).map(([k, n]) => (
-            <button key={k} onClick={() => onPick(k)} className="w-full rounded-2xl border border-white/15 bg-slate-800 py-4 text-lg font-bold hover:border-accent hover:text-accent">{n}</button>
+            <button key={k} onClick={() => onPick(k)} className="w-full rounded-2xl glass glow py-4 text-lg font-bold hover:border-accent hover:text-accent">{n}</button>
           ))}
         </div>
       </div>
@@ -120,24 +173,49 @@ function LangPicker({ onPick }) {
   );
 }
 
-const Cover = ({ hue, kind, seed }) => {
-  const id = 'g' + seed;
-  return (
-    <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
-      <defs><linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor={`hsl(${hue} 65% 24%)`} /><stop offset="1" stopColor={`hsl(${hue + 55} 70% 11%)`} />
-      </linearGradient></defs>
-      <rect width="200" height="100" fill={`url(#${id})`} />
-      {kind === 'edit'
-        ? [0, 1, 2, 3].map((i) => <rect key={i} x={8 + ((seed * 37 + i * 53) % 70)} y={14 + i * 20} width={40 + ((seed * 17 + i * 31) % 70)} height="12" rx="4" fill={`hsl(${hue + i * 22} 90% 62%)`} opacity=".85" />)
-        : Array.from({ length: 34 }, (_, i) => { const h = 8 + Math.abs(Math.sin(i * 0.55 + seed)) * 46; return <rect key={i} x={10 + i * 5.5} y={50 - h / 2} width="3" height={h} rx="1.5" fill={`hsl(${hue + i * 3} 90% 65%)`} opacity=".85" />; })}
-      {kind === 'edit' && <line x1={110 + seed * 6} y1="4" x2={110 + seed * 6} y2="96" stroke="#FACC15" strokeWidth="1.5" />}
-    </svg>
-  );
+/* ---------- GENERATED ARTWORK (no external images) ---------- */
+const Logo = ({ s = 40 }) => (
+  <svg width={s} height={s} viewBox="0 0 48 48" aria-hidden="true" style={{ filter: 'drop-shadow(0 0 10px rgba(250,204,21,.45))' }}>
+    <defs><linearGradient id={`lg${s}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FDE047" /><stop offset="1" stopColor="#F59E0B" /></linearGradient></defs>
+    <rect width="48" height="48" rx="13" fill={`url(#lg${s})`} />
+    <polygon points="19,13 19,33 35,23" fill="#12142F" stroke="#12142F" strokeWidth="3" strokeLinejoin="round" />
+    <rect x="10" y="39" width="28" height="3" rx="1.5" fill="#12142F" />
+    <rect x="30" y="36" width="3" height="9" rx="1.5" fill="#12142F" />
+    <path d="M38 8l1.4 3.6L43 13l-3.6 1.4L38 18l-1.4-3.6L33 13l3.6-1.4z" fill="#fff" opacity=".9" />
+  </svg>
+);
+
+const ART = {
+  grade: (h) => <><circle cx="84" cy="46" r="24" fill={`hsl(${h} 90% 60%)`} opacity=".85" /><circle cx="108" cy="46" r="24" fill="#FACC15" opacity=".8" /><circle cx="96" cy="66" r="24" fill="#3DDBD9" opacity=".8" />
+    {[22, 46, 70].map((y, i) => <g key={y}><rect x="150" y={y} width="30" height="5" rx="2.5" fill="#fff" opacity=".6" /><circle cx={158 + i * 6} cy={y + 2.5} r="5" fill="#FACC15" /></g>)}</>,
+  aspect: () => <><rect x="30" y="14" width="34" height="72" rx="5" fill="none" stroke="#FACC15" strokeWidth="2.5" /><rect x="36" y="20" width="22" height="60" rx="3" fill="none" stroke="#FACC15" strokeDasharray="3 3" opacity=".6" />
+    <rect x="76" y="28" width="64" height="36" rx="5" fill="none" stroke="#fff" strokeWidth="2.5" opacity=".85" /><rect x="152" y="32" width="28" height="28" rx="5" fill="none" stroke="#3DDBD9" strokeWidth="2.5" /></>,
+  thumb: (h) => <><rect x="34" y="16" width="132" height="68" rx="8" fill="#0b0d1e" opacity=".55" stroke="#fff" strokeOpacity=".5" strokeWidth="2" /><polygon points="34,84 70,46 94,70 116,54 166,84" fill={`hsl(${h} 70% 45%)`} opacity=".9" />
+    <circle cx="142" cy="34" r="8" fill="#FACC15" /><rect x="46" y="22" width="60" height="9" rx="3" fill="#FACC15" /><rect x="46" y="35" width="40" height="9" rx="3" fill="#fff" /></>,
+  script: () => <><rect x="62" y="12" width="76" height="78" rx="7" fill="#fff" opacity=".93" /><rect x="72" y="24" width="40" height="6" rx="3" fill="#12142F" />
+    {[38, 48, 58].map((y) => <rect key={y} x="72" y={y} width="54" height="4" rx="2" fill="#12142F" opacity=".35" />)}<rect x="72" y="68" width="30" height="4" rx="2" fill="#FACC15" /><rect x="106" y="65" width="2.5" height="10" fill="#12142F" /></>,
+  hooks: () => <><polygon points="100,8 70,54 94,54 86,92 128,40 102,40" fill="#FACC15" /><path d="M150 24v34a14 14 0 0 1-28 0" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" opacity=".85" /><circle cx="150" cy="22" r="4" fill="#fff" opacity=".85" /></>,
+  titles: () => <><rect x="30" y="22" width="140" height="24" rx="6" fill="#fff" opacity=".92" /><text x="40" y="40" fontSize="15" fontWeight="800" fill="#12142F" fontFamily="sans-serif">How I Edit Like a Pro</text>
+    <rect x="30" y="54" width="100" height="14" rx="5" fill="#FACC15" /><rect x="30" y="74" width="70" height="8" rx="4" fill="#fff" opacity=".4" /></>,
+  captions: () => <><rect x="34" y="14" width="110" height="56" rx="14" fill="#fff" opacity=".93" /><polygon points="58,70 58,86 76,70" fill="#fff" opacity=".93" /><rect x="46" y="28" width="70" height="6" rx="3" fill="#12142F" />
+    <rect x="46" y="40" width="86" height="5" rx="2.5" fill="#12142F" opacity=".35" /><rect x="46" y="51" width="50" height="5" rx="2.5" fill="#12142F" opacity=".35" /><text x="152" y="64" fontSize="42" fontWeight="800" fill="#FACC15" fontFamily="sans-serif">#</text></>,
+  ideas: () => <><circle cx="100" cy="42" r="24" fill="#FACC15" /><rect x="90" y="64" width="20" height="8" rx="3" fill="#fff" opacity=".85" /><rect x="93" y="74" width="14" height="6" rx="3" fill="#fff" opacity=".6" />
+    <g stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity=".7"><line x1="100" y1="6" x2="100" y2="12" /><line x1="64" y1="42" x2="58" y2="42" /><line x1="136" y1="42" x2="142" y2="42" /><line x1="74" y1="16" x2="70" y2="12" /><line x1="126" y1="16" x2="130" y2="12" /></g></>,
+  shots: (h) => <>{[0, 1, 2].flatMap((c) => [0, 1].map((r) => <rect key={`${c}${r}`} x={34 + c * 46} y={16 + r * 38} width="40" height="32" rx="5" fill={`hsl(${h + (c + r * 3) * 28} 75% 55%)`} opacity=".88" />))}<polygon points="48,28 48,42 60,35" fill="#fff" opacity=".85" /></>,
 };
+const Cover = ({ id, hue }) => (
+  <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
+    <defs>
+      <linearGradient id={`cg-${id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={`hsl(${hue} 65% 26%)`} /><stop offset="1" stopColor={`hsl(${hue + 55} 70% 10%)`} /></linearGradient>
+      <radialGradient id={`cr-${id}`} cx=".5" cy=".45" r=".6"><stop offset="0" stopColor={`hsl(${hue} 90% 60%)`} stopOpacity=".35" /><stop offset="1" stopOpacity="0" /></radialGradient>
+    </defs>
+    <rect width="200" height="100" fill={`url(#cg-${id})`} /><rect width="200" height="100" fill={`url(#cr-${id})`} />
+    {ART[id](hue)}
+  </svg>
+);
 
 const HeroArt = () => (
-  <svg viewBox="0 0 400 220" className="w-full rounded-3xl border border-white/10 bg-slate-900" aria-hidden="true">
+  <svg viewBox="0 0 400 220" className="w-full rounded-3xl border border-white/10 bg-panel shadow-[0_0_60px_-12px_rgba(250,204,21,.28)]" aria-hidden="true">
     <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#2a2370" /><stop offset="1" stopColor="#0f1233" /></linearGradient></defs>
     <rect width="400" height="220" fill="url(#hg)" />
     {[...Array(40)].map((_, i) => <line key={i} x1={10 + i * 10} y1="14" x2={10 + i * 10} y2={i % 5 === 0 ? 28 : 21} stroke="#4a4fa0" />)}
@@ -148,11 +226,13 @@ const HeroArt = () => (
   </svg>
 );
 
-const inp = 'w-full rounded-xl border border-white/15 bg-slate-900 px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-accent';
-const btn = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 font-bold text-ink hover:brightness-110 disabled:opacity-60';
-const ghost = 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-gray-300 hover:border-white/30';
-const Card = ({ children, className = '' }) => <div className={`rounded-2xl border border-white/15 bg-slate-900/90 p-5 ${className}`}>{children}</div>;
+/* ---------- SHARED UI ---------- */
+const inp = 'w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-400 backdrop-blur-md focus:border-accent focus:outline-none focus:shadow-[0_0_20px_-4px_rgba(250,204,21,.5)]';
+const btn = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 font-bold text-ink hover:brightness-110 disabled:opacity-60 neon';
+const ghost = 'inline-flex items-center justify-center gap-2 rounded-xl glass px-4 py-2.5 text-sm font-semibold text-gray-300 hover:border-accent/50 hover:text-white';
+const Card = ({ children, className = '' }) => <div className={`rounded-2xl glass glow p-5 ${className}`}>{children}</div>;
 
+/* ---------- EDITING TOOLS ---------- */
 const BASE = { b: 100, c: 100, s: 100, h: 0, sep: 0, blur: 0 };
 const LOOKS = {
   Original: {}, Cinematic: { b: 95, c: 120, s: 90, h: -6, sep: 12 }, Vivid: { b: 105, c: 115, s: 150 },
@@ -176,7 +256,7 @@ function ColorGrader() {
     const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
     const ctx = cv.getContext('2d');
     if ('filter' in ctx) { ctx.filter = filter; ctx.drawImage(el, 0, 0, w, h); }
-    else {
+    else { // Safari fallback: brightness, contrast, saturation only
       ctx.drawImage(el, 0, 0, w, h);
       const d = ctx.getImageData(0, 0, w, h), p = d.data, B = v.b / 100, C = v.c / 100, S = v.s / 100;
       for (let i = 0; i < p.length; i += 4) {
@@ -246,10 +326,227 @@ function AspectTool() {
   );
 }
 
-const toTC = (f, fps) => { const s = Math.floor(f / fps); return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, f % fps].map((n) => String(n).padStart(2, '0')).join(':'); };
-const fromTC = (t, fps) => { const p = t.split(':').map(Number); return p.length === 4 && !p.some(isNaN) ? ((p[0] * 60 + p[1]) * 60 + p[2]) * fps + p[3] : null; };
-function TimecodeTool() {
-  const [fps, setFps] = useState(30);
-  const [frames, setFrames] = useState(450);
-  const [tc, setTc] = useState('00:00:15:00');
-  
+function ThumbnailMaker() {
+  const [img, setImg] = useState(null);
+  const [text, setText] = useState('MY NEW VIDEO');
+  const [size, setSize] = useState(110);
+  const [color, setColor] = useState('#FACC15');
+  const [pos, setPos] = useState('bottom');
+  const [dark, setDark] = useState(35);
+  const cv = useRef(null);
+  useEffect(() => {
+    const c = cv.current, x = c.getContext('2d'); c.width = 1280; c.height = 720;
+    const g = x.createLinearGradient(0, 0, 1280, 720); g.addColorStop(0, '#2a2370'); g.addColorStop(1, '#0f1233');
+    x.fillStyle = g; x.fillRect(0, 0, 1280, 720);
+    if (img) { const k = Math.max(1280 / img.width, 720 / img.height), w = img.width * k, h = img.height * k; x.drawImage(img, (1280 - w) / 2, (720 - h) / 2, w, h); }
+    x.fillStyle = `rgba(0,0,0,${dark / 100})`; x.fillRect(0, 0, 1280, 720);
+    x.font = `800 ${size}px "Bricolage Grotesque", Cairo, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const lines = []; let cur = '';
+    text.split(/\s+/).filter(Boolean).forEach((w) => { const t = cur ? cur + ' ' + w : w; if (x.measureText(t).width > 1160 && cur) { lines.push(cur); cur = w; } else cur = t; });
+    if (cur) lines.push(cur);
+    const lh = size * 1.12, bh = lines.length * lh;
+    const cy = pos === 'top' ? 56 + bh / 2 : pos === 'center' ? 360 : 664 - bh / 2;
+    x.lineJoin = 'round'; x.lineWidth = size / 7; x.strokeStyle = '#000'; x.fillStyle = color;
+    lines.forEach((l, i) => { const y = cy - bh / 2 + lh * i + lh / 2; x.strokeText(l, 640, y); x.fillText(l, 640, y); });
+  }, [img, text, size, color, pos, dark]);
+  const onFile = (e) => { const f = e.target.files[0]; if (!f) return; const i = new Image(); i.onload = () => setImg(i); i.src = URL.createObjectURL(f); };
+  const save = () => { const a = document.createElement('a'); a.href = cv.current.toDataURL('image/png'); a.download = 'clipmed-thumbnail.png'; a.click(); };
+  return (
+    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <Card><canvas ref={cv} className="w-full rounded-xl" /></Card>
+      <Card className="space-y-4">
+        <label className={`${ghost} w-full cursor-pointer`}><Icon n="upload" s={16} /> {tr('Choose an image')}<input type="file" accept="image/*" onChange={onFile} className="sr-only" /></label>
+        <label className="block text-sm text-gray-300">{tr('Thumbnail text')}<input value={text} onChange={(e) => setText(e.target.value)} className={`${inp} mt-1`} /></label>
+        <label className="block text-sm text-gray-300">{tr('Text size')}<input type="range" min="50" max="180" value={size} onChange={(e) => setSize(+e.target.value)} /></label>
+        <label className="block text-sm text-gray-300">{tr('Darken background')}<input type="range" min="0" max="80" value={dark} onChange={(e) => setDark(+e.target.value)} /></label>
+        <div className="flex gap-2">{['#FACC15', '#FFFFFF', '#3DDBD9', '#FF5C8A'].map((c) => <button key={c} onClick={() => setColor(c)} aria-label={c} style={{ background: c }} className={`h-8 w-8 rounded-full ${color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-ink' : ''}`} />)}</div>
+        <div className="flex gap-2">{[['top', 'Top'], ['center', 'Center'], ['bottom', 'Bottom']].map(([k, l]) => <button key={k} onClick={() => setPos(k)} aria-pressed={pos === k} className={`${ghost} flex-1 ${pos === k ? '!border-accent !text-accent' : ''}`}>{tr(l)}</button>)}</div>
+        <button onClick={save} className={`${btn} w-full`}><Icon n="camera" /> {tr('Download thumbnail (PNG)')}</button>
+      </Card>
+    </div>
+  );
+}
+
+const LANG_NAME = { en: 'English', fr: 'French', ar: 'Arabic' };
+const AI_TOOLS = {
+  hooks: { mode: 'list', p: (i) => `Write 6 scroll-stopping opening hooks (for the first 3 seconds) for a short video about: ${i}.` },
+  titles: { mode: 'list', p: (i) => `Write 6 clear, clickable video titles for: ${i}.` },
+  script: { mode: 'text', p: (i) => `Write a short-form video script (about 45 seconds) about: ${i}. Structure: Hook, 3 key points, Call to action. Add a rough timing for each part.` },
+  captions: { mode: 'text', p: (i) => `Write ready-to-post captions for a video about: ${i}. Give 3 versions: TikTok (short), Instagram Reels, YouTube Shorts. End each with 5 relevant hashtags.` },
+  ideas: { mode: 'list', p: (i) => `Give 8 original video ideas for a creator in this niche: ${i}. One line each, with a short angle.` },
+  shots: { mode: 'list', p: (i) => `Plan a shot list for a video about: ${i}. Give 6 shots, one per line, each with shot type and duration.` },
+};
+async function runAI(id, input) {
+  const t = AI_TOOLS[id];
+  const prompt = `${t.p(input)} Reply in ${LANG_NAME[LANG]}. ` + (t.mode === 'list' ? 'Output only the list, one item per line, no intro.' : 'Use plain text with no markdown symbols (no ** or #), except for hashtags.');
+  try {
+    const r = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+    if (r.ok) {
+      const data = await r.json();
+      if (data.reply) {
+        const clean = data.reply.replace(/\*\*/g, '');
+        return t.mode === 'text' ? [clean.trim()] : clean.split('\n').map((x) => x.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').trim()).filter(Boolean);
+      }
+    }
+  } catch (e) { console.error(e); }
+  return t.mode === 'text'
+    ? [`${input}\n\nThe AI is not available right now. Please try again in a moment.`]
+    : [`Guide & Ideas for ${input}`, `Top tips on ${input}`, `How to master ${input} fast`, `The ultimate breakdown of ${input}`, `Everything you need to know about ${input}`];
+}
+
+function AiTool({ id, ph }) {
+  const [input, setInput] = useState('');
+  const [out, setOut] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [done, setDone] = useState(-1);
+  const run = async () => {
+    if (!input.trim()) return setErr(tr('Enter a topic first.'));
+    setErr(''); setBusy(true);
+    try { setOut(await runAI(id, input.trim())); } catch (e) { setErr(tr('Something went wrong. Try again.')); }
+    setBusy(false);
+  };
+  const copy = (t, i) => { try { navigator.clipboard.writeText(t); setDone(i); setTimeout(() => setDone(-1), 1200); } catch (e) {} };
+  return (
+    <div className="max-w-3xl">
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && run()} placeholder={tr(ph)} className={inp} />
+        <button onClick={run} disabled={busy} className={`${btn} ${busy ? 'animate-pulse' : ''}`}>{busy ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/25 border-t-ink" /> : <Icon n="zap" />}{busy ? tr('Working...') : tr('Generate')}</button>
+      </div>
+      {err && <p className="mt-2 text-sm text-red-300">{err}</p>}
+      {busy && (
+        <div className="mt-5 space-y-2" role="status" aria-live="polite">
+          <p className="flex items-center gap-2 text-sm font-semibold text-accent">✨ {tr('AI is thinking')}
+            <span className="flex gap-1">{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent" style={{ animationDelay: `${i * 0.15}s` }} />)}</span>
+          </p>
+          {[78, 64, 90, 55].map((w, i) => <div key={i} className="shimmer h-12 rounded-xl border border-white/10" style={{ width: `${w}%` }} />)}
+        </div>
+      )}
+      <ul className={`mt-5 space-y-2 ${busy ? 'hidden' : ''}`}>
+        {out.map((l, i) => (
+          <li key={i} className="flex items-start justify-between gap-3 rounded-xl glass px-4 py-3">
+            <span className={AI_TOOLS[id].mode === 'text' ? 'whitespace-pre-wrap leading-7' : ''}>{l}</span>
+            <button onClick={() => copy(l, i)} title="Copy" className="text-gray-400 hover:text-white"><Icon n={done === i ? 'check' : 'copy'} /></button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* ---------- TOOL REGISTRY ---------- */
+const TOOLS = [
+  { id: 'grade', kind: 'edit', name: 'Color Grader', icon: 'sliders', hue: 270, desc: 'Preview looks on your own clip or image and save a graded frame.', C: ColorGrader },
+  { id: 'aspect', kind: 'edit', name: 'Aspect Ratio & Safe Zones', icon: 'maximize', hue: 200, desc: 'Export sizes for every platform, with safe-zone guides.', C: AspectTool },
+  { id: 'thumb', kind: 'edit', name: 'Thumbnail Maker', icon: 'image', hue: 20, desc: 'Make a 1280×720 thumbnail with big text over any image.', C: ThumbnailMaker },
+  { id: 'script', kind: 'ai', name: 'Script Writer', icon: 'fileText', hue: 160, desc: 'A full short-video script with hook, key points and call to action.', C: () => <AiTool id="script" ph="What is your video about?" /> },
+  { id: 'hooks', kind: 'ai', name: 'Hook Writer', icon: 'zap', hue: 45, desc: 'Opening lines that stop the scroll in the first 3 seconds.', C: () => <AiTool id="hooks" ph="What is your video about?" /> },
+  { id: 'titles', kind: 'ai', name: 'Title Generator', icon: 'type', hue: 230, desc: 'Clear, clickable titles for your videos.', C: () => <AiTool id="titles" ph="Video topic" /> },
+  { id: 'captions', kind: 'ai', name: 'Caption & Hashtags', icon: 'msg', hue: 300, desc: 'Ready-to-post captions with hashtags for TikTok, Reels and Shorts.', C: () => <AiTool id="captions" ph="Video topic" /> },
+  { id: 'ideas', kind: 'ai', name: 'Video Idea Generator', icon: 'bulb', hue: 90, desc: 'Fresh video ideas for your niche, each with an angle.', C: () => <AiTool id="ideas" ph="Your niche or channel type" /> },
+  { id: 'shots', kind: 'ai', name: 'Shot List Planner', icon: 'list', hue: 345, desc: 'Turn an idea into a shot-by-shot plan before you film.', C: () => <AiTool id="shots" ph="Describe your video idea" /> },
+];
+
+/* ---------- APP ---------- */
+function App() {
+  const [active, setActive] = useState(null);
+  const [lang, setLang] = useState(() => { try { return localStorage.getItem('clipmed_lang'); } catch (e) { return null; } });
+  LANG = lang || 'en';
+  const pickLang = (l) => { setLang(l); try { localStorage.setItem('clipmed_lang', l); } catch (e) {} };
+  useEffect(() => { document.documentElement.lang = LANG; document.documentElement.dir = LANG === 'ar' ? 'rtl' : 'ltr'; }, [lang]);
+  const [q, setQ] = useState('');
+  const [kind, setKind] = useState('all');
+  const list = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return TOOLS.filter((t) => (kind === 'all' || t.kind === kind) && (!s || (tr(t.name) + ' ' + tr(t.desc)).toLowerCase().includes(s)));
+  }, [q, kind, lang]);
+  const tool = TOOLS.find((t) => t.id === active);
+  const go = (id) => { setActive(id); window.scrollTo({ top: 0 }); };
+
+  return (
+    <>
+      {!lang && <LangPicker onPick={pickLang} />}
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-ink/40 px-5 py-3 backdrop-blur-md">
+        <button onClick={() => go(null)} className="flex items-center gap-3">
+          <Logo s={40} />
+          <span className="text-xl font-extrabold tracking-tight">Clip<span className="text-accent">Med</span></span>
+        </button>
+        <div className="flex items-center gap-2">
+          {tool && <button onClick={() => go(null)} className={ghost}><Icon n="back" s={16} c="rtl:rotate-180" /> {tr('All tools')}</button>}
+          <select value={lang || 'en'} onChange={(e) => pickLang(e.target.value)} aria-label="Language" className="rounded-xl glass px-3 py-2.5 text-sm font-semibold text-white">
+            {Object.entries(NAMES).map(([k, n]) => <option key={k} value={k}>{n}</option>)}
+          </select>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-5 pb-16">
+        {tool ? (
+          <section className="pt-8">
+            <div className="glass mb-6 h-36 overflow-hidden rounded-2xl"><Cover id={tool.id} hue={tool.hue} /></div>
+            <div className="mb-6 flex items-start gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent text-ink neon"><Icon n={tool.icon} s={24} /></span>
+              <div><h1 className="text-3xl font-extrabold tracking-tight">{tr(tool.name)}</h1><p className="mt-1 text-gray-400">{tr(tool.desc)}</p></div>
+            </div>
+            <tool.C />
+          </section>
+        ) : (
+          <>
+            <section className="grid items-center gap-8 pt-10 md:grid-cols-2">
+              <div>
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span className="badge glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold text-accent">
+                    <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-accent" /></span>
+                    ⚡ {tr('Powered by Gemini AI')}
+                  </span>
+                  <span className="badge glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold text-white" style={{ animationDelay: '.6s' }}>✨ {tr('100% Free')}</span>
+                </div>
+                <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">{tr('Edit faster with tools that work right here.')}</h1>
+                <p className="mt-4 max-w-lg text-gray-400 md:text-lg">{tr('Grade footage, size your export, design thumbnails, and write scripts, hooks and captions with AI. No downloads, no sign-up.')}</p>
+              </div>
+              <HeroArt />
+            </section>
+
+            <div className="mt-10 space-y-4">
+              <label className="relative block">
+                <span className="sr-only">{tr('Search tools')}</span>
+                <span className="pointer-events-none absolute inset-y-0 start-4 flex items-center text-gray-400"><Icon n="search" /></span>
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search tools...')} className={`${inp} ps-12`} />
+              </label>
+              <div className="noscroll flex gap-2.5 overflow-x-auto" role="group" aria-label="Tool type">
+                {[['all', 'All tools'], ['edit', 'Editing tools'], ['ai', 'AI tools']].map(([k, l]) => (
+                  <button key={k} onClick={() => setKind(k)} aria-pressed={kind === k}
+                    className={`whitespace-nowrap rounded-xl px-5 py-2.5 text-sm font-semibold ${kind === k ? 'bg-accent text-ink neon' : 'glass text-gray-300 hover:border-accent/40'}`}>{tr(l)}</button>
+                ))}
+              </div>
+            </div>
+
+            {list.length === 0 ? (
+              <p className="mt-16 text-center text-gray-400">{tr('No tool matches that search. Try another word.')}</p>
+            ) : (
+              <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {list.map((t, i) => (
+                  <button key={t.id} onClick={() => go(t.id)} className="group glass glow overflow-hidden rounded-2xl text-start">
+                    <div className="relative h-40">
+                      <Cover id={t.id} hue={t.hue} />
+                      <span className="absolute start-3 top-3 rounded-lg bg-black/40 px-3 py-1 text-xs font-semibold text-accent backdrop-blur-md">{t.kind === 'ai' ? tr('AI tool') : tr('Editing tool')}</span>
+                      <span className="absolute bottom-3 end-3 grid h-10 w-10 place-items-center rounded-xl bg-accent text-ink neon"><Icon n={t.icon} /></span>
+                    </div>
+                    <div className="p-5">
+                      <h3 className="text-lg font-bold group-hover:text-accent">{tr(t.name)}</h3>
+                      <p className="mt-1 text-sm text-gray-400">{tr(t.desc)}</p>
+                      <span className="mt-4 block rounded-xl bg-accent/10 py-3 text-center text-sm font-semibold text-accent group-hover:bg-accent group-hover:text-ink">{tr('Open tool')}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </main>
+    </>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
