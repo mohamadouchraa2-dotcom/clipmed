@@ -266,7 +266,7 @@ const I18N = {
         'Clear, clickable titles for your videos.': `عناوين واضحة وجذابة لفيديوهاتك.`,  
         'Turn an idea into a shot-by-shot plan before you film.': `حوّل الفكرة إلى خطة لقطة بلقطة قبل التصوير.`,  
         'Edit faster with tools that work right here.': `قم بالمونتاج أسرع بأدوات تعمل هنا مباشرة.`,  
-        'Edit photos, cut videos on a multi-track timeline, design thumbnails, and write scripts with AI. No downloads, no sign-up.': `عدّل صورك، مونتج فيديوهاتك على تايملاين متعدد المسارات، صمّم الصور المصغرة واكتب السكريبتات بالذكاء الاصطناعي.`,  
+        'Edit photos, cut videos on a multi-track timeline, design thumbnails, and write scripts with AI. No downloads, no sign-up.': `عدّل صورك، مونتج فيديوهاتك على تايملاين متعدد المسارات، صمّم الصور المصغّرة واكتب السكريبتات بالذكاء الاصطناعي.`,  
         'Search tools...': `ابحث عن أداة...`, 'Search tools': `ابحث عن أداة`, 'Editing tools': `أدوات المونتاج`, 'AI tools': `أدوات الذكاء الاصطناعي`,  
         'AI tool': `أداة ذكاء اصطناعي`, 'Editing tool': `أداة مونتاج`, 'Open tool': `افتح الأداة`, 'Powered by Gemini AI': `مدعوم بـ Gemini AI`, '100% Free': `مجاني 100%`, 'AI is thinking': `الذكاء الاصطناعي يفكر`,  
         'Background Remover': `إزالة الخلفية`, 'Remove the background from any photo with AI. It runs on your device.': `أزل خلفية أي صورة بالذكاء الاصطناعي. كل شيء يعمل على جهازك.`,  
@@ -433,7 +433,7 @@ const btn = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent 
 const ghost = 'inline-flex items-center justify-center gap-2 rounded-xl glass px-4 py-2.5 text-sm font-semibold text-gray-300 hover:border-accent/50 hover:text-white cursor-pointer';  
 const Card = ({ children, className = '' }) => React.createElement("div", { className: `rounded-2xl glass glow p-5 ${className}` }, children);  
   
-/* ---------- PHOTO EDITOR (Upgraded from Color Grader) ---------- */  
+/* ---------- PHOTO EDITOR ---------- */  
 const PHOTO_BASE = { b: 100, c: 100, s: 100, h: 0, sep: 0, blur: 0, vig: 0 };  
 const PHOTO_LOOKS = {  
     Original: {},  
@@ -505,40 +505,23 @@ function PhotoEditor() {
             }  
         }  
   
-        // Set both dimensions before getting the context: resizing resets Safari canvas state.
         cv.width = Math.max(1, outW);  
         cv.height = Math.max(1, outH);  
-        const ctx = cv.getContext('2d', { willReadFrequently: true });
-        if (!ctx) return;
-        ctx.clearRect(0, 0, outW, outH);
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+        const ctx = cv.getContext('2d', { willReadFrequently: true });  
+        if (!ctx) return;  
+        ctx.clearRect(0, 0, outW, outH);  
+        ctx.imageSmoothingEnabled = true;  
+        ctx.imageSmoothingQuality = 'high';  
   
         ctx.save();  
-        const filterString = `brightness(${v.b}%) contrast(${v.c}%) saturate(${v.s}%) hue-rotate(${v.h}deg) sepia(${v.sep}%) blur(${v.blur}px)`;
-        const supportsFilter = 'filter' in ctx;
-        if (supportsFilter) ctx.filter = filterString;
+        const filterString = `brightness(${v.b}%) contrast(${v.c}%) saturate(${v.s}%) hue-rotate(${v.h}deg) sepia(${v.sep}%) blur(${v.blur}px)`;  
+        const supportsFilter = 'filter' in ctx;  
+        if (supportsFilter) ctx.filter = filterString;  
         ctx.translate(outW / 2, outH / 2);  
         if (flipX) ctx.scale(-1, 1);  
         ctx.rotate((rot * Math.PI) / 180);  
         ctx.drawImage(img, -img.width / 2, -img.height / 2);  
-        ctx.restore();
-        // Fallback for mobile browsers that do not implement Canvas filter().
-        if (!supportsFilter && (v.b !== 100 || v.c !== 100 || v.s !== 100)) {
-            try {
-                const frame = ctx.getImageData(0, 0, outW, outH), px = frame.data;
-                const br = v.b / 100, co = v.c / 100, sat = v.s / 100;
-                for (let i = 0; i < px.length; i += 4) {
-                    let r = (px[i] - 128) * co + 128, g = (px[i+1] - 128) * co + 128, b = (px[i+2] - 128) * co + 128;
-                    r *= br; g *= br; b *= br;
-                    const y = .299*r + .587*g + .114*b;
-                    px[i] = Math.max(0, Math.min(255, y + (r-y)*sat));
-                    px[i+1] = Math.max(0, Math.min(255, y + (g-y)*sat));
-                    px[i+2] = Math.max(0, Math.min(255, y + (b-y)*sat));
-                }
-                ctx.putImageData(frame, 0, 0);
-            } catch (err) { console.warn('Canvas adjustment fallback unavailable', err); }
-        }
+        ctx.restore();  
   
         if (v.vig > 0) {  
             const rad = Math.max(outW, outH) * 0.72;  
@@ -650,7 +633,6 @@ function ThumbnailMaker({ initial }) {
         x.fillStyle = `rgba(0,0,0,${dark / 100})`;  
         x.fillRect(0, 0, 1280, 720);  
   
-        // Subtle pro vignette  
         const vig = x.createRadialGradient(640, 360, 260, 640, 360, 760);  
         vig.addColorStop(0, 'rgba(0,0,0,0)');  
         vig.addColorStop(1, 'rgba(0,0,0,0.45)');  
@@ -765,7 +747,7 @@ function ThumbnailMaker({ initial }) {
             React.createElement(SaveBtn, { kind: "thumb", title: text, data: snap }))));  
 }  
   
-/* ---------- BACKGROUND REMOVER (AI ON-DEVICE) ---------- */  
+/* ---------- BACKGROUND REMOVER ---------- */  
 const TF_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';  
 const BG_MODEL = 'briaai/RMBG-1.4';  
 const MAX_SIDE = 1600;  
@@ -1059,7 +1041,7 @@ function BgRemover() {
             React.createElement("p", { className: "text-xs text-gray-400" }, tr('Your photo never leaves your device. The AI model downloads once, then stays cached.')))));  
 }  
   
-/* ---------- AI STUDIO & TIMELINE PRO (SMOOTH PLAYBACK & MEDIA IMPORT FIXED) ---------- */  
+/* ---------- AI STUDIO & TIMELINE PRO ---------- */  
 const TRACKS = [['video', 'Video', '#6366F1'], ['broll', 'B-Roll', '#3DDBD9'], ['audio', 'Audio / Music', '#22C55E'], ['text', 'Text', '#FACC15'], ['fx', 'AI Effects', '#F472B6']];  
 const TCOLOR = Object.fromEntries(TRACKS.map(([k, , c]) => [k, c]));  
 let CID = 100;  
@@ -1166,7 +1148,7 @@ function StudioPro({ initial }) {
     const [playing, setPlaying] = useState(false);  
     const [sel, setSel] = useState(null);  
     const [pps, setPps] = useState(40);  
-    const [media, setMedia] = useState(null); // { url, type: 'video' | 'image' }  
+    const [media, setMedia] = useState(null);  
     const [tab, setTab] = useState('ai');  
     const [reframe, setReframe] = useState(initial ? !!initial.reframe : false);  
     const [fx, setFx] = useState(initial && initial.fx ? initial.fx : { preset: 'teal', k: 80, mb: 0, glitch: 0 });  
@@ -1178,7 +1160,7 @@ function StudioPro({ initial }) {
     const [ideaBusy, setIdeaBusy] = useState(false);  
     const [ex, setEx] = useState(null);  
   
-    const vref = useRef(null), anal = useRef(null), timer = useRef(null), mediaRef = useRef(null);
+    const vref = useRef(null), anal = useRef(null), timer = useRef(null), mediaRef = useRef(null);  
     mediaRef.current = media;  
     const tRef = useRef(t);  
     tRef.current = t;  
@@ -1187,61 +1169,58 @@ function StudioPro({ initial }) {
   
     const total = Math.max(1, ...clips.map((c) => c.start + c.dur));  
   
-    // Smooth lag-free playback loop (video acts as master clock when active, avoiding seek thrashing)  
     useEffect(() => {  
         if (!playing) {  
             if (vref.current && !vref.current.paused) vref.current.pause();  
             return;  
         }  
-        let raf;
-        let last = performance.now();
-        let lastUi = last;
-        let lastClipId = null;
-        const tick = (now) => {
-            const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
-            last = now;
-            const v = vref.current;
-            const curT = tRef.current;
-            const vc = clipsRef.current.find((c) => c.track === 'video' && curT >= c.start && curT < c.start + c.dur);
-            let nextT = curT + dt;
+        let raf;  
+        let last = performance.now();  
+        let lastUi = last;  
+        let lastClipId = null;  
+        const tick = (now) => {  
+            const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));  
+            last = now;  
+            const v = vref.current;  
+            const curT = tRef.current;  
+            const vc = clipsRef.current.find((c) => c.track === 'video' && curT >= c.start && curT < c.start + c.dur);  
+            let nextT = curT + dt;  
 
-            if (v && media && media.type === 'video' && vc) {
-                const expectedVideoTime = vc.off + (curT - vc.start);
-                if (lastClipId !== vc.id || v.paused) {
-                    if (v.readyState >= 1 && Math.abs(v.currentTime - expectedVideoTime) > 0.06) {
-                        try { v.currentTime = expectedVideoTime; } catch (e) {}
-                    }
-                    lastClipId = vc.id;
-                    if (v.readyState >= 2) v.play().catch(() => {});
-                }
-                if (!v.paused && !v.seeking && v.readyState >= 2) {
-                    const syncedT = vc.start + (v.currentTime - vc.off);
-                    if (Number.isFinite(syncedT) && syncedT >= vc.start - 0.03 && syncedT <= vc.start + vc.dur + 0.05) nextT = syncedT;
-                }
-            } else {
-                if (v && !v.paused) v.pause();
-                lastClipId = null;
-            }
+            if (v && media && media.type === 'video' && vc) {  
+                const expectedVideoTime = vc.off + (curT - vc.start);  
+                if (lastClipId !== vc.id || v.paused) {  
+                    if (v.readyState >= 1 && Math.abs(v.currentTime - expectedVideoTime) > 0.06) {  
+                        try { v.currentTime = expectedVideoTime; } catch (e) {}  
+                    }  
+                    lastClipId = vc.id;  
+                    if (v.readyState >= 2) v.play().catch(() => {});  
+                }  
+                if (!v.paused && !v.seeking && v.readyState >= 2) {  
+                    const syncedT = vc.start + (v.currentTime - vc.off);  
+                    if (Number.isFinite(syncedT) && syncedT >= vc.start - 0.03 && syncedT <= vc.start + vc.dur + 0.05) nextT = syncedT;  
+                }  
+            } else {  
+                if (v && !v.paused) v.pause();  
+                lastClipId = null;  
+            }  
 
-            if (nextT >= total) {
-                if (v && !v.paused) v.pause();
-                setPlaying(false);
-                setT(total);
-                return;
-            }
-            // Keep the animation clock at display refresh rate, but limit React renders to ~30fps.
-            if (now - lastUi >= 33) {
-                lastUi = now;
-                setT(nextT);
-            }
-            tRef.current = nextT;
-            raf = requestAnimationFrame(tick);
-        };
+            if (nextT >= total) {  
+                if (v && !v.paused) v.pause();  
+                setPlaying(false);  
+                setT(total);  
+                return;  
+            }  
+            if (now - lastUi >= 33) {  
+                lastUi = now;  
+                setT(nextT);  
+            }  
+            tRef.current = nextT;  
+            raf = requestAnimationFrame(tick);  
+        };  
         raf = requestAnimationFrame(tick);  
         return () => cancelAnimationFrame(raf);  
     }, [playing, total, media]);  
   
-    // Scrubbing when paused  
     useEffect(() => {  
         if (playing) return;  
         const v = vref.current;  
@@ -1254,13 +1233,12 @@ function StudioPro({ initial }) {
         }  
     }, [t, playing, clips, media]);  
   
-    useEffect(() => () => {
-        clearInterval(timer.current);
-        if (vref.current) { vref.current.pause(); vref.current.removeAttribute('src'); vref.current.load(); }
-        if (mediaRef.current && mediaRef.current.url) URL.revokeObjectURL(mediaRef.current.url);
+    useEffect(() => () => {  
+        clearInterval(timer.current);  
+        if (vref.current) { vref.current.pause(); vref.current.removeAttribute('src'); vref.current.load(); }  
+        if (mediaRef.current && mediaRef.current.url) URL.revokeObjectURL(mediaRef.current.url);  
     }, []);  
   
-    // Fixed & unified media import (supports both Video & Image)  
     const onImport = (e) => {  
         const f = e.target.files[0];  
         if (!f) return;  
@@ -1268,8 +1246,8 @@ function StudioPro({ initial }) {
         const isVid = f.type.startsWith('video/');  
         if (!isImg && !isVid) return;  
   
-        if (vref.current) { vref.current.pause(); vref.current.removeAttribute('src'); vref.current.load(); }
-        if (mediaRef.current && mediaRef.current.url) URL.revokeObjectURL(mediaRef.current.url);
+        if (vref.current) { vref.current.pause(); vref.current.removeAttribute('src'); vref.current.load(); }  
+        if (mediaRef.current && mediaRef.current.url) URL.revokeObjectURL(mediaRef.current.url);  
         const url = URL.createObjectURL(f);  
   
         const applyMedia = (dur, type) => {  
@@ -1296,14 +1274,14 @@ function StudioPro({ initial }) {
             const probe = document.createElement('video');  
             probe.preload = 'metadata';  
             probe.src = url;  
-            probe.onloadedmetadata = async () => {
-                const d = Number.isFinite(probe.duration) && probe.duration > 0 ? probe.duration : 10;
-                applyMedia(d, 'video');
-                probe.removeAttribute('src'); probe.load();
-                if (f.size < 80e6) {
-                    try { anal.current = await analyzeAudio(f); } catch (err) { anal.current = null; }
-                }
-            };
+            probe.onloadedmetadata = async () => {  
+                const d = Number.isFinite(probe.duration) && probe.duration > 0 ? probe.duration : 10;  
+                applyMedia(d, 'video');  
+                probe.removeAttribute('src'); probe.load();  
+                if (f.size < 80e6) {  
+                    try { anal.current = await analyzeAudio(f); } catch (err) { anal.current = null; }  
+                }  
+            };  
             probe.onerror = () => { applyMedia(10, 'video'); probe.removeAttribute('src'); probe.load(); };  
         }  
         e.target.value = '';  
@@ -1431,11 +1409,11 @@ function StudioPro({ initial }) {
                 React.createElement(Card, { className: "space-y-3" },  
                     React.createElement("div", { className: "mx-auto overflow-hidden rounded-xl bg-black ring-1 ring-white/10", style: reframe ? { width: 'calc(44vh * 9 / 16)', aspectRatio: '9/16' } : { width: '100%', aspectRatio: '16/9' } },  
                         React.createElement("div", { className: "relative h-full w-full overflow-hidden", style: { animation: fx.glitch ? `glitch ${Math.max(0.4, 1.8 - fx.glitch / 70)}s steps(2, end) infinite` : 'none', '--g': `${fx.glitch / 8}px` } },  
-                            media && media.type === 'video' ? (
-                                React.createElement("video", { ref: vref, src: media.url, playsInline: true, preload: "auto", muted: false, className: "h-full w-full object-cover", style: { display: activeVidClip ? 'block' : 'none', objectPosition: `${focus}% 50%`, filter } })
-                            ) : media && media.type === 'image' && activeVidClip ? (
-                                React.createElement("img", { src: media.url, alt: "Imported image", className: "h-full w-full object-cover", style: { objectPosition: `${focus}% 50%`, filter } })
-                            ) : activeVidClip ? (
+                            media && media.type === 'video' ? (  
+                                React.createElement("video", { ref: vref, src: media.url, playsInline: true, preload: "auto", muted: false, className: "h-full w-full object-cover", style: { display: activeVidClip ? 'block' : 'none', objectPosition: `${focus}% 50%`, filter } })  
+                            ) : media && media.type === 'image' && activeVidClip ? (  
+                                React.createElement("img", { src: media.url, alt: "Imported image", className: "h-full w-full object-cover", style: { objectPosition: `${focus}% 50%`, filter } })  
+                            ) : activeVidClip ? (  
                                 React.createElement("div", { className: "grid h-full w-full place-items-center text-sm font-bold text-white/70", style: { background: `linear-gradient(${120 + t * 25}deg, #3b2f8f, #0ea5a4 50%, #f59e0b)`, backgroundPosition: `${focus}% 50%`, filter } }, tr('Demo footage'))  
                             ) : (  
                                 React.createElement("div", { className: "grid h-full w-full place-items-center bg-black text-xs text-gray-500" }, "No clip at playhead")  
@@ -1538,7 +1516,7 @@ function StudioPro({ initial }) {
                     React.createElement("button", { onClick: () => { clearInterval(timer.current); setEx(null); }, className: ghost }, tr('Close'))))))));  
 }  
   
-/* ---------- ACCOUNTS + SAVED PROJECTS (Supabase) ---------- */  
+/* ---------- ACCOUNTS + SAVED PROJECTS ---------- */  
 const SUPABASE_URL = 'https://smbajmemivfwkrphajmy.supabase.co';  
 const SUPABASE_KEY = 'sb_publishable_qNtdhdTxdDWGhbfoAunUAw__fj2_CfW';  
 let SB = null;  
@@ -1591,17 +1569,17 @@ function AuthModal({ mode, setMode, onClose }) {
         setBusy(false);  
     };  
   
-    const google = async () => {
-        setErr(''); setMsg(''); setBusy(true);
-        try {
-            const sb = await getSB();
-            const redirectTo = `${window.location.origin}${window.location.pathname}`;
-            const { error } = await sb.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo, queryParams: { access_type: 'offline', prompt: 'select_account' } }
-            });
-            if (error) throw error;
-        } catch (e) { setErr(e.message || tr('Something went wrong. Try again.')); setBusy(false); }
+    const google = async () => {  
+        setErr(''); setMsg(''); setBusy(true);  
+        try {  
+            const sb = await getSB();  
+            const redirectTo = `${window.location.origin}${window.location.pathname}`;  
+            const { error } = await sb.auth.signInWithOAuth({  
+                provider: 'google',  
+                options: { redirectTo, queryParams: { access_type: 'offline', prompt: 'select_account' } }  
+            });  
+            if (error) throw error;  
+        } catch (e) { setErr(e.message || tr('Something went wrong. Try again.')); setBusy(false); }  
     };  
   
     const forgot = async () => {  
@@ -1728,7 +1706,7 @@ function Account({ user, openAuth }) {
             React.createElement("button", { onClick: update, className: `${btn} w-full` }, tr('Update password')))));  
 }  
   
-/* ---------- AI ENGINE & UPGRADED SCRIPT WRITER ---------- */  
+/* ---------- AI ENGINE ---------- */  
 const LANG_NAME = { en: 'English', fr: 'French', ar: 'Arabic' };  
 const AI_TOOLS = {  
     hooks: { mode: 'list', p: (i) => `Write 6 scroll-stopping opening hooks (for the first 3 seconds) for a short video about: ${i}.` },  
@@ -1769,7 +1747,6 @@ function AiTool({ id, ph, initial }) {
     const [err, setErr] = useState('');  
     const [done, setDone] = useState(-1);  
   
-    // Script Writer specific states (Short vs Long + Custom Duration)  
     const [lengthType, setLengthType] = useState(initial && initial.lengthType ? initial.lengthType : 'short');  
     const [duration, setDuration] = useState(initial && initial.duration ? initial.duration : 8);  
   
@@ -1803,11 +1780,11 @@ function AiTool({ id, ph, initial }) {
                 React.createElement("div", { className: "flex items-center justify-between text-xs text-gray-300 mb-1.5" },  
                     React.createElement("span", null, tr('Target duration')),  
                     React.createElement("span", { className: "font-bold text-accent" }, duration, " ", tr('minutes'))),  
-                React.createElement("div", { className: "flex flex-wrap gap-2" },
-                    [3, 5, 8, 10, 15, 20].map((m) =>
-                        React.createElement("button", { key: m, onClick: () => setDuration(m), className: `${ghost} !px-3 !py-1.5 text-xs ${duration === m ? '!border-accent !text-accent' : ''}` }, m, " min"))),
-                React.createElement("label", { className: "block text-xs text-gray-300" },
-                    tr('Custom duration (minutes)'),
+                React.createElement("div", { className: "flex flex-wrap gap-2" },  
+                    [3, 5, 8, 10, 15, 20].map((m) =>  
+                        React.createElement("button", { key: m, onClick: () => setDuration(m), className: `${ghost} !px-3 !py-1.5 text-xs ${duration === m ? '!border-accent !text-accent' : ''}` }, m, " min"))),  
+                React.createElement("label", { className: "block text-xs text-gray-300" },  
+                    tr('Custom duration (minutes)'),  
                     React.createElement("input", { type: "number", min: 1, max: 60, step: 1, value: duration, onChange: (e) => setDuration(Math.min(60, Math.max(1, Number(e.target.value) || 1))), className: `${inp} mt-1 !py-2`, inputMode: "numeric" })))))),  
         React.createElement("div", { className: "flex flex-col gap-3 sm:flex-row" },  
             React.createElement("input", { value: input, onChange: (e) => setInput(e.target.value), onKeyDown: (e) => e.key === 'Enter' && run(), placeholder: tr(ph), className: inp }),  
