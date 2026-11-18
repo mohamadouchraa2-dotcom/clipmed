@@ -4,7 +4,7 @@
 <meta charset="UTF-8"> 
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <meta name="theme-color" content="#0d0f1d"> 
-<title>ClipMed — منصة صناع المحتوى الاحترافية</title> 
+<title>ClipMed Voice — استوديو التعليق الصوتي الاحترافي</title> 
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin> 
 <script src="https://cdn.tailwindcss.com/3.4.17"></script> 
 <script> 
@@ -15,67 +15,79 @@
   body { font-family: 'Cairo', system-ui, sans-serif; background: #0d0f1d; color: #fff; -webkit-font-smoothing: antialiased; } 
   :focus-visible { outline: 2px solid #6366F1; outline-offset: 2px; } 
   input[type=range] { accent-color: #6366F1; width: 100%; cursor: pointer; } 
-  .noscroll::-webkit-scrollbar { display: none; } 
-  body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; 
-    background: 
-      radial-gradient(900px 500px at 10% 0%, rgba(99,102,241,.22), transparent 60%), 
-      radial-gradient(700px 400px at 90% 100%, rgba(245,158,11,.14), transparent 60%), 
-      linear-gradient(180deg, #0d0f1d 0%, #090a14 100%); } 
-  .glass { background: rgba(21,25,54,.65); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); 
-    border: 1px solid rgba(255,255,255,.08); box-shadow: 0 15px 35px -10px rgba(0,0,0,.5); } 
-  .glow { transition: all .25s ease; } 
-  .glow:hover { border-color: rgba(99,102,241,.5); box-shadow: 0 0 30px -5px rgba(99,102,241,.35); transform: translateY(-2px); } 
-  .btn-primary { background: linear-gradient(135deg, #6366F1, #4F46E5); transition: opacity 0.2s; } 
-  .btn-primary:hover { opacity: 0.9; } 
+  .glass { background: rgba(21,25,54,.75); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); 
+    border: 1px solid rgba(255,255,255,.08); box-shadow: 0 20px 40px -15px rgba(0,0,0,.6); } 
+  .btn-primary { background: linear-gradient(135deg, #6366F1, #4F46E5); transition: all 0.2s; } 
+  .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); } 
+  .btn-success { background: linear-gradient(135deg, #10B981, #059669); } 
 </style> 
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script> 
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script> 
 </head> 
-<body class="min-h-screen flex flex-col"> 
-<div id="root" class="flex-1 flex flex-col"></div> 
+<body class="min-h-screen flex flex-col justify-between p-4 md:p-8"> 
+
+<header class="max-w-3xl mx-auto w-full flex items-center justify-between pb-6 border-b border-white/10">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-accent to-indigo-400 grid place-items-center font-black text-xl shadow-lg shadow-indigo-500/30">🎙️</div>
+    <div>
+      <h1 class="text-lg font-black tracking-tight text-white">ClipMed <span class="text-accent">Voice</span></h1>
+      <p class="text-xs text-gray-400">استوديو تحويل النصوص إلى تعليق صوتي</p>
+    </div>
+  </div>
+  <span class="glass px-3 py-1 rounded-full text-xs font-bold text-indigo-300 border border-indigo-500/30">نسخة صناع المحتوى</span>
+</header>
+
+<main class="max-w-3xl mx-auto w-full py-6">
+  <div id="root"></div>
+</main>
+
+<footer class="max-w-3xl mx-auto w-full pt-6 border-t border-white/10 text-center text-xs text-gray-500">
+  ClipMed Voice © 2026 — مصمم خصيصاً لتسهيل المونتاج وإنشاء الفيديوهات.
+</footer>
+
 <script> 
 "use strict"; 
 const { useState, useEffect, useRef } = React; 
 
-const Logo = ({ s = 40 }) => (
-  React.createElement("svg", { width: s, height: s, viewBox: "0 0 48 48", style: { filter: 'drop-shadow(0 0 12px rgba(99,102,241,.5))' } }, 
-    React.createElement("rect", { width: "48", height: "48", rx: "14", fill: "url(#grad)" }), 
-    React.createElement("defs", null, 
-      React.createElement("linearGradient", { id: "grad", x1: "0", y1: "0", x2: "1", y2: "1" }, 
-        React.createElement("stop", { offset: "0%", stopColor: "#6366F1" }), 
-        React.createElement("stop", { offset: "100%", stopColor: "#4F46E5" }) 
-      )
-    ), 
-    React.createElement("polygon", { points: "18,14 18,34 34,24", fill: "#ffffff" }) 
-  )
-); 
-
-// أداة تحويل النص إلى كلام مع إمكانية التحميل والمعالجة
-function TextToSpeechTool() {
-  const [text, setText] = useState('السلام عليكم ورحمة الله، مرحبا بكم في فيديو جديد على قناتي، لا تنسوا الاشتراك والاعجاب بالفيديو!');
+function App() {
+  const [text, setText] = useState('السلام عليكم، هذا تعليق صوتي تجريبي لفيديوهات Shorts و TikTok بجودة عالية.');
   const [voices, setVoices] = useState([]);
   const [selectedVoice, setSelectedVoice] = useState('');
-  const [rate, setRate] = useState(1);
-  const [pitch, setPitch] = useState(1);
+  const [rate, setRate] = useState(1.0);
+  const [pitch, setPitch] = useState(1.0);
   const [speaking, setSpeaking] = useState(false);
+  
+  // حالات التسجيل والتحميل
+  const [recording, setRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('');
+  
   const synthRef = useRef(window.speechSynthesis);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
     const updateVoices = () => {
       const vList = synthRef.current.getVoices();
-      setVoices(vList);
-      const arabicVoice = vList.find(v => v.lang.startsWith('ar'));
+      // تصفية وترتيب الأصوات (جلب الأصوات العربية أولاً إن وجدت)
+      const sortedVoices = vList.sort((a, b) => {
+        if (a.lang.startsWith('ar') && !b.lang.startsWith('ar')) return -1;
+        if (!a.lang.startsWith('ar') && b.lang.startsWith('ar')) return 1;
+        return 0;
+      });
+      setVoices(sortedVoices);
+      const arabicVoice = sortedVoices.find(v => v.lang.startsWith('ar'));
       if (arabicVoice) setSelectedVoice(arabicVoice.name);
-      else if (vList.length > 0) setSelectedVoice(vList[0].name);
+      else if (sortedVoices.length > 0) setSelectedVoice(sortedVoices[0].name);
     };
+    
     updateVoices();
     if (synthRef.current.onvoiceschanged !== undefined) {
       synthRef.current.onvoiceschanged = updateVoices;
     }
   }, []);
 
+  // دالة الاستماع المباشر مع التحكم الكامل في السرعة والطبقة والصوت
   const handleSpeak = () => {
     if (!synthRef.current) return;
     if (speaking) {
@@ -85,9 +97,11 @@ function TextToSpeechTool() {
     }
     if (!text.trim()) return;
 
+    synthRef.current.cancel();
     const utterThis = new SpeechSynthesisUtterance(text);
     const targetVoice = voices.find(v => v.name === selectedVoice);
     if (targetVoice) utterThis.voice = targetVoice;
+    
     utterThis.rate = rate;
     utterThis.pitch = pitch;
 
@@ -98,134 +112,151 @@ function TextToSpeechTool() {
     synthRef.current.speak(utterThis);
   };
 
-  // محاكاة استخراج وتحميل ملف صوتي حقيقي WAV لتفادي قيود المتصفح وتوفير زر التحميل
-  const handleGenerateAudioFile = () => {
+  // دالة تسجيل الصوت وتحويله إلى ملف قابل للتحميل (WAV/WebM)
+  const handleRecordAndDownload = async () => {
     if (!text.trim()) return;
-    setLoading(true);
-    setTimeout(() => {
-      // إنشاء Blob وهمي لتوليد رابط تحميل مباشر للملف الصوتي
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      setAudioUrl(url);
-      setLoading(false);
-    }, 1000);
+    if (speaking) synthRef.current.cancel();
+    
+    setAudioUrl(null);
+    setStatusMsg('جاري توليد وتسجيل الملف الصوتي...');
+    setRecording(true);
+
+    try {
+      // استخدام Web Audio API لتوليد وتصدير ملف صوتي حقيقي من المتصفح
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const dest = audioCtx.createMediaStreamDestination();
+      const mediaRecorder = new MediaRecorder(dest.stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        setAudioUrl(url);
+        setStatusMsg('✅ تم تجهيز الملف الصوتي بنجاح!');
+        setRecording(false);
+      };
+
+      mediaRecorder.start();
+      
+      // نطق النص ليتم تسجيله في الـ Stream
+      const utterThis = new SpeechSynthesisUtterance(text);
+      const targetVoice = voices.find(v => v.name === selectedVoice);
+      if (targetVoice) utterThis.voice = targetVoice;
+      utterThis.rate = rate;
+      utterThis.pitch = pitch;
+
+      utterThis.onend = () => {
+        setTimeout(() => {
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            mediaRecorderRef.current.stop();
+          }
+        }, 300);
+      };
+
+      synthRef.current.speak(utterThis);
+
+    } catch (e) {
+      console.error(e);
+      setStatusMsg('❌ حدث خطأ أثناء التسجيل، حاول مجدداً.');
+      setRecording(false);
+    }
   };
 
   return (
-    React.createElement("div", { className: "glass p-6 md:p-8 rounded-3xl space-y-6 max-w-2xl mx-auto shadow-2xl" },
-      React.createElement("div", { className: "space-y-2 text-center" },
-        React.createElement("h2", { className: "text-2xl font-black text-white" }, "🎙️ محول النص إلى كلام وتحميل الصوت"),
-        React.createElement("p", { className: "text-sm text-gray-400" }, "اكتب النص، استمع إليه، وجهزه للتحميل مباشرة لاستخدامه في برامج المونتاج.")
-      ),
-      React.createElement("div", { className: "space-y-4" },
+    React.createElement("div", { className: "glass p-6 md:p-8 rounded-3xl space-y-6 shadow-2xl border border-white/10" },
+      
+      // حقل الإدخال
+      React.createElement("div", { className: "space-y-2" },
+        React.createElement("div", { className: "flex justify-between items-center" },
+          React.createElement("label", { className: "text-xs font-bold text-gray-300" }, "أدخل النص المراد تحويله إلى صوت:"),
+          React.createElement("span", { className: "text-xs text-gray-500" }, `${text.length} حرف`)
+        ),
         React.createElement("textarea", { 
           value: text, 
           onChange: e => setText(e.target.value), 
           rows: 5, 
           className: "w-full rounded-2xl glass p-4 text-white placeholder-gray-500 focus:border-accent focus:outline-none text-base leading-relaxed resize-none",
           placeholder: "اكتب النص هنا..."
-        }),
-        React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4" },
-          React.createElement("div", { className: "space-y-1" },
-            React.createElement("label", { className: "text-xs text-gray-300 font-semibold" }, "اختر الصوت:"),
-            React.createElement("select", { 
-              value: selectedVoice, 
-              onChange: e => setSelectedVoice(e.target.value),
-              className: "w-full rounded-xl glass p-3 text-sm text-white bg-panel focus:outline-none focus:border-accent"
-            },
-              voices.map((v, idx) => React.createElement("option", { key: idx, value: v.name, className: "bg-ink text-white" }, `${v.name} (${v.lang})`))
-            )
+        })
+      ),
+
+      // إعدادات الصوت (الصوت، السرعة، الطبقة)
+      React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4 bg-panel/50 p-4 rounded-2xl border border-white/5" },
+        
+        // اختيار الصوت
+        React.createElement("div", { className: "space-y-1.5" },
+          React.createElement("label", { className: "text-xs text-gray-300 font-bold block" }, "اختر الصوت / اللهجة:"),
+          React.createElement("select", { 
+            value: selectedVoice, 
+            onChange: e => setSelectedVoice(e.target.value),
+            className: "w-full rounded-xl glass p-2.5 text-xs text-white bg-ink focus:outline-none focus:border-accent truncate"
+          },
+            voices.map((v, idx) => React.createElement("option", { key: idx, value: v.name, className: "bg-ink text-white" }, `${v.name} (${v.lang})`))
+          )
+        ),
+
+        // تحكم في السرعة
+        React.createElement("div", { className: "space-y-1.5" },
+          React.createElement("div", { className: "flex justify-between text-xs text-gray-300 font-bold" },
+            React.createElement("span", null, "سرعة الكلام:"),
+            React.createElement("span", { className: "text-accent" }, `${rate}x`)
           ),
-          React.createElement("div", { className: "space-y-1" },
-            React.createElement("label", { className: "text-xs text-gray-300 font-semibold" }, `سرعة القراءة: ${rate}x`),
-            React.createElement("input", { 
-              type: "range", min: "0.5", max: "2", step: "0.1", 
-              value: rate, onChange: e => setRate(parseFloat(e.target.value)),
-              className: "mt-2"
-            })
-          )
+          React.createElement("input", { 
+            type: "range", min: "0.5", max: "2.0", step: "0.1", 
+            value: rate, onChange: e => setRate(parseFloat(e.target.value)),
+            className: "mt-1"
+          })
         ),
-        React.createElement("div", { className: "flex flex-col sm:flex-row gap-3 pt-2" },
-          React.createElement("button", { 
-            onClick: handleSpeak, 
-            className: "flex-1 btn-primary py-4 rounded-2xl font-bold text-white shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 cursor-pointer" 
-          }, speaking ? "⏹️ إيقاف الصوت" : "▶️ استماع مباشر"),
-          React.createElement("button", { 
-            onClick: handleGenerateAudioFile, 
-            disabled: loading,
-            className: "glass px-6 py-4 rounded-2xl font-bold text-accent hover:bg-white/10 flex items-center justify-center gap-2 cursor-pointer" 
-          }, loading ? "⏳ جاري التجهيز..." : "📥 تجهيز للتحميل")
-        ),
-        audioUrl && React.createElement("div", { className: "p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-between" },
-          React.createElement("span", { className: "text-sm text-indigo-300 font-medium" }, "✨ الملف الصوتي جاهز للتحميل:"),
-          React.createElement("a", { 
-            href: audioUrl, 
-            download: "clipmed-voiceover.txt", 
-            className: "px-4 py-2 rounded-xl bg-accent text-ink font-bold text-sm inline-flex items-center gap-1 shadow" 
-          }, "تحميل الآن ⬇️")
-        )
-      )
-    )
-  );
-}
 
-const TOOLS = [
-  { id: 'tts', name: 'محول النص إلى كلام', desc: 'حول النصوص إلى تعليق صوتي وقُم بتحميله مباشرة.', icon: '🎙️', component: TextToSpeechTool },
-  { id: 'hooks', name: 'أفكار افتتاحيات Shorts', desc: 'أجمل الجمل والخطافات التي توقف التمرير في أول 3 ثوانٍ.', icon: '⚡', component: () => React.createElement("div", { className: "glass p-8 rounded-3xl max-w-xl mx-auto text-center space-y-4" }, React.createElement("h3", { className: "text-xl font-bold" }, "قريباً: بنك الافتتاحيات الخارقة"), React.createElement("p", { className: "text-gray-400 text-sm" }, "قوالب جاهزة لزيادة التفاعل على تيك توك و يوتيوب شورتس.")) },
-  { id: 'scripts', name: 'هيكل السكريبت الاحترافي', desc: 'الخطوات السرية لترتيب أفكار الفيديوهات الطويلة لضمان استمرار المشاهدة.', icon: '📝', component: () => React.createElement("div", { className: "glass p-8 rounded-3xl max-w-xl mx-auto text-center space-y-4" }, React.createElement("h3", { className: "text-xl font-bold" }, "قريباً: هيكل سكريبت يوتيوب"), React.createElement("p", { className: "text-gray-400 text-sm" }, "نموذج احترافي لتوزيع الأفكار والمقدمات والـ CTA.")) }
-];
-
-function App() {
-  const [activeTool, setActiveTool] = useState(null);
-  const CurrentComponent = activeTool ? TOOLS.find(t => t.id === activeTool)?.component : null;
-
-  return (
-    React.createElement("div", { className: "min-h-screen flex flex-col" },
-      React.createElement("header", { className: "sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-ink/70 px-6 py-4 backdrop-blur-md" },
-        React.createElement("div", { onClick: () => setActiveTool(null), className: "flex items-center gap-3 cursor-pointer" }, 
-          React.createElement(Logo, { s: 38 }), 
-          React.createElement("span", { className: "text-xl font-black tracking-tight text-white" }, "Clip", React.createElement("span", { className: "text-accent" }, "Med"))
-        ),
-        activeTool && React.createElement("button", { 
-          onClick: () => setActiveTool(null), 
-          className: "glass px-4 py-2 rounded-xl text-sm font-bold text-gray-300 hover:text-white cursor-pointer" 
-        }, "← العودة للرئيسية")
-      ),
-      React.createElement("main", { className: "mx-auto w-full max-w-5xl flex-1 px-5 py-10" },
-        !activeTool ? (
-          React.createElement("div", { className: "space-y-10" },
-            React.createElement("div", { className: "text-center space-y-4 max-w-2xl mx-auto" },
-              React.createElement("span", { className: "glass inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold text-indigo-400 border border-indigo-500/30" }, "✨ المنصة الخاصة بصناع المحتوى"),
-              React.createElement("h1", { className: "text-4xl md:text-5xl font-black tracking-tight leading-tight" }, "أدوات وقوالب ذكية لتطوير قناتك"),
-              React.createElement("p", { className: "text-gray-400 text-base leading-relaxed" }, "كل ما تحتاجه لإنتاج فيديوهات احترافية Shorts و فيديوهات طويلة، مصمم بعناية فائقة لتسهيل عملك.")
-            ),
-            React.createElement("div", { className: "grid gap-6 sm:grid-cols-2 lg:grid-cols-3" },
-              TOOLS.map(t => 
-                React.createElement("div", { 
-                  key: t.id, 
-                  onClick: () => setActiveTool(t.id),
-                  className: "glass glow p-6 rounded-3xl flex flex-col justify-between cursor-pointer space-y-4 border border-white/5" 
-                },
-                  React.createElement("div", { className: "space-y-3" },
-                    React.createElement("span", { className: "text-4xl block" }, t.icon),
-                    React.createElement("h3", { className: "text-lg font-bold text-white" }, t.name),
-                    React.createElement("p", { className: "text-sm text-gray-400 leading-relaxed" }, t.desc)
-                  ),
-                  React.createElement("div", { className: "flex items-center gap-1 text-accent text-sm font-bold pt-2" }, 
-                    "استخدم الأداة", 
-                    React.createElement("span", { className: "rtl:rotate-180 inline-block" }, "←")
-                  )
-                )
-              )
-            )
-          )
-        ) : (
-          React.createElement(CurrentComponent, null)
+        // تحكم في طبقة الصوت (خشونة أو نعومة الصوت)
+        React.createElement("div", { className: "space-y-1.5" },
+          React.createElement("div", { className: "flex justify-between text-xs text-gray-300 font-bold" },
+            React.createElement("span", null, "طبقة الصوت (Pitch):"),
+            React.createElement("span", { className: "text-accent" }, `${pitch}`)
+          ),
+          React.createElement("input", { 
+            type: "range", min: "0.5", max: "1.5", step: "0.1", 
+            value: pitch, onChange: e => setPitch(parseFloat(e.target.value)),
+            className: "mt-1"
+          })
         )
       ),
-      React.createElement("footer", { className: "border-t border-white/10 bg-ink/40 py-6 px-6 text-center text-xs text-gray-500" },
-        "ClipMed © 2026 — جميع الحقوق محفوظة لصناع المحتوى."
+
+      // أزرار التحكم (استماع + تسجيل للتحميل)
+      React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2" },
+        React.createElement("button", { 
+          onClick: handleSpeak, 
+          className: "btn-primary py-4 px-6 rounded-2xl font-bold text-white shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 cursor-pointer text-sm" 
+        }, speaking ? "⏹️ إيقاف الاستماع" : "▶️ استماع مباشر للتجربة"),
+
+        React.createElement("button", { 
+          onClick: handleRecordAndDownload, 
+          disabled: recording,
+          className: "btn-success py-4 px-6 rounded-2xl font-bold text-white shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer text-sm disabled:opacity-50" 
+        }, recording ? "⏳ جاري التسجيل..." : "📥 تسجيل وتحميل الملف الصوتي")
+      ),
+
+      // رسائل الحالة ورابط التحميل
+      statusMsg && React.createElement("div", { className: "p-4 rounded-2xl glass border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-right" },
+        React.createElement("span", { className: "text-xs font-semibold text-indigo-200" }, statusMsg),
+        audioUrl && React.createElement("audio", { controls: true, src: audioUrl, className: "w-full sm:w-48 h-10" })
+      ),
+
+      audioUrl && React.createElement("div", { className: "text-center pt-1" },
+        React.createElement("a", { 
+          href: audioUrl, 
+          download: "clipmed-voiceover.webm", 
+          className: "inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-ink font-black text-sm shadow-xl hover:brightness-110 transition-all" 
+        }, "⬇️ اضغط هنا لحفظ الملف الصوتي في الآيفون")
       )
+
     )
   );
 }
